@@ -5,7 +5,7 @@ set -e
 ROOT_DIR=$(git rev-parse --show-toplevel)
 source "${ROOT_DIR}/scm/scripts/common/echo.sh"
 
-TARGET="mpc"
+TARGET="sdpc"
 
 # git pull the submodule
 cd "${ROOT_DIR}"

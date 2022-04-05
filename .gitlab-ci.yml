@@ -1,6 +1,8 @@
 stages:
     - general
     - lang_check
+    - static_analytics
+    - build
 
 .caching:
     cache:
@@ -53,3 +55,23 @@ Python Test:
     script:
         - echo "This is the python CI check stage."
         - scm/scripts/ci/python_ci.sh
+
+Static Anaytics Test:
+    extends: .caching
+    stage: static_analytics
+    tags:
+        - pycounter
+    script:
+        - echo "This is the Static Anaytics CI check stage."
+        - scm/scripts/ci/static_analytics.sh
+
+Build:
+    extends: .caching
+    stage: build
+    tags:
+        - pycounter
+    script:
+        - echo "This is the build stage."
+        - scm/scripts/ci/build_ci.sh
+    cache:
+      policy: push

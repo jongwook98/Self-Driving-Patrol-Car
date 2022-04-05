@@ -12,7 +12,7 @@ pwd
 cppcheck \
 	--enable=style \
 	-I include/ \
-	-i third_party/ -i out/ -i unittest/ \
+	-i out/ \
 	--error-exitcode=1 \
 	--verbose \
 	--suppress=missingIncludeSystem \
