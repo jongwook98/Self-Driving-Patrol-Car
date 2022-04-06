@@ -3,9 +3,11 @@
 #define SDPC_COMMON_H
 
 #include <errno.h>
+#include <fcntl.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -15,6 +17,7 @@
 #define ERR_INVALID_PTR "Invalid Pointer."
 #define ERR_INVALID_RET "Invalild return value."
 #define ERR_INVALID_FD "Invalid File Descripter."
+#define ERR_INVALID_PARAMS "Invalid Parameters."
 #define ERR_MEMORY_SHORTAGE "Failed to allocate the memory."
 
 #define unlikely(x) __builtin_expect(!!(x), 0)
@@ -77,5 +80,8 @@ static inline int check_permission(int (*pfunc_exit)(void))
 
     return -EPERM;
 }
+
+ssize_t readn(int fd, void *ptr, size_t n);
+ssize_t writen(int fd, const void *ptr, size_t n);
 
 #endif /* SDPC_COMMON_H */

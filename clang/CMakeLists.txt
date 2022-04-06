@@ -9,6 +9,7 @@ set(CMAKE_BUILD_TYPE Debug)
 set(
   SDPC_SRC
   "${CMAKE_CURRENT_SOURCE_DIR}/common/sdpc_camera.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/common/sdpc_common.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/common/sdpc_lidar.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/common/sdpc_main.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/common/sdpc_uart.c"
