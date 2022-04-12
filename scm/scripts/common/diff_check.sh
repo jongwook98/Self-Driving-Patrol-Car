@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -ex
 DIFF=$(git diff)
 
 if [ -z "${DIFF}" ]

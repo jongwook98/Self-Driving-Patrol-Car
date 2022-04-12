@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -ex
 BACK_CR="\033[0m"
 RED_CR="\033[0;31m"
 GREEN_CR="\033[0;32m"
