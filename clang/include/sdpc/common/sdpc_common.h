@@ -61,6 +61,12 @@
         }                                                                      \
     } while (0)
 
+enum
+{
+    OFF,
+    ON
+};
+
 typedef struct sync sync_t;
 
 struct sync
@@ -83,5 +89,8 @@ static inline int check_permission(int (*pfunc_exit)(void))
 
 ssize_t readn(int fd, void *ptr, size_t n);
 ssize_t writen(int fd, const void *ptr, size_t n);
+
+sync_t *sync_create(void);
+int sync_destroy(sync_t **const sync);
 
 #endif /* SDPC_COMMON_H */

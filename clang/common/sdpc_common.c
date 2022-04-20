@@ -49,3 +49,28 @@ ssize_t writen(int fd, const void *ptr, size_t n)
 
     return (n - nleft);
 }
+
+sync_t *sync_create(void)
+{
+    sync_t *new = malloc(sizeof(sync_t));
+    FORMULA_GUARD(new == NULL, NULL, ERR_MEMORY_SHORTAGE);
+
+    pthread_cond_init(&new->cv, NULL);
+    pthread_mutex_init(&new->lock, NULL);
+
+    return new;
+}
+
+int sync_destroy(sync_t **const sync)
+{
+    FORMULA_GUARD(sync == NULL || *sync == NULL, -EPERM, ERR_INVALID_PTR);
+
+    sync_t *del = *sync;
+
+    pthread_cond_destroy(&del->cv);
+    pthread_mutex_destroy(&del->lock);
+
+    PTR_FREE(del);
+
+    return 0;
+}
