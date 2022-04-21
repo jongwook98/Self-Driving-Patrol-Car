@@ -33,11 +33,6 @@ sudo apt-get install -y build-essential \
 echo_func "[scm] Install the Python package"
 sudo pip3 install -U -r requirements.txt
 
-echo_func "[scm] Install the PyQt package"
-sudo apt install -y python3-pyqt5 \
-	pyqt5-dev-tools \
-	qttools5-dev-tools
-
 sudo apt-get autoremove -y
 sudo apt-get autoclean -y
 sudo apt-get clean

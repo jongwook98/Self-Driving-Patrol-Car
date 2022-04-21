@@ -13,7 +13,7 @@ cd "${ROOT_DIR}"
 bash ${CI_DIR}/general_ci.sh
 
 # lang check
-bash ${CI_DIR}/bash_ci.sh
+#bash ${CI_DIR}/bash_ci.sh
 bash ${CI_DIR}/clang_ci.sh
 bash ${CI_DIR}/cmake_ci.sh
 bash ${CI_DIR}/python_ci.sh
