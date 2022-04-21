@@ -31,6 +31,8 @@
 	>	name = <Your Name>
 	>[core]
 	>	editor = vim
+	>[credential]
+	>	helper = store
 	>EOF
 	```
 
@@ -47,7 +49,7 @@
 	$ ssh -T git@gitlab.com
 	$ git clone https://gitlab.com/MAZE-dankook/self-driving-patrol-car.git
 	$ cd self-driving-patrol-car/scm/scripts/common
-	$ sudo pip3 install -U -r requirements.txt
+	$ ./install_package.sh
 	```
 	- Now, You can push/pull without to input ID/Password
 	- Enjoy :)
