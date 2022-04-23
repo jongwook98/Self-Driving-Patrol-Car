@@ -88,7 +88,7 @@ static inline int _lane_create_thread(struct lane_data *lane)
     sync_t *sync = lane->cur_sync;
 
     pthread_mutex_lock(&sync->lock);
-    int ret = pthread_create(&lane->th, NULL, _do_thread, &lane);
+    int ret = pthread_create(&lane->th, NULL, _do_thread, lane);
     FORMULA_GUARD_WITH_EXIT_FUNC(ret < 0, -EPERM,
                                  pthread_mutex_unlock(&sync->lock),
                                  "Failed to create the pthread.");
