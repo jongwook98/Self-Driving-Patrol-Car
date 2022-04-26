@@ -71,9 +71,7 @@ static void *_do_thread(void *arg)
     struct lane_data *lane = (struct lane_data *)arg;
     sync_t *cur_sync = lane->cur_sync;
 
-    pthread_mutex_lock(&cur_sync->lock);
-    pthread_cond_signal(&cur_sync->cv);
-    pthread_mutex_unlock(&cur_sync->lock);
+    send_signal(cur_sync);
 
     while (lane->escape)
     {

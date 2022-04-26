@@ -23,9 +23,6 @@ static void *_deeplearning_thread(void *arg);
 static inline int _vehicle_create_thread(struct vehicle_data *vehicle);
 static inline void _vehicle_destroy_thread(struct vehicle_data *vehicle);
 
-static inline void _wait_signal(sync_t *sync);
-static inline void _send_signal(sync_t *sync);
-
 static struct vehicle_data *g_vehicle;
 
 int sdpc_vehicle_init(void)
@@ -92,7 +89,7 @@ static void *_main_thread(void *arg)
     sync_t *deep_sync = vehicle->deep_sync;
 
     /* send */
-    _send_signal(main_sync);
+    send_signal(main_sync);
 
     while (vehicle->escape)
     {
@@ -100,8 +97,8 @@ static void *_main_thread(void *arg)
         sleep(0);
 
         /* broadcast */
-        _send_signal(lidar_sync);
-        _send_signal(deep_sync);
+        send_signal(lidar_sync);
+        send_signal(deep_sync);
 
         /* wait to use the message queue */
     }
@@ -116,12 +113,12 @@ static void *_lidar_thread(void *arg)
     sync_t *lidar_sync = vehicle->lidar_sync;
 
     /* send */
-    _send_signal(main_sync);
+    send_signal(main_sync);
 
     while (vehicle->escape)
     {
         /* wait */
-        _wait_signal(lidar_sync);
+        wait_signal(lidar_sync);
 
         /* TODO */
 
@@ -138,12 +135,12 @@ static void *_deeplearning_thread(void *arg)
     sync_t *deep_sync = vehicle->deep_sync;
 
     /* send */
-    _send_signal(main_sync);
+    send_signal(main_sync);
 
     while (vehicle->escape)
     {
         /* wait */
-        _wait_signal(deep_sync);
+        wait_signal(deep_sync);
 
         /* TODO */
 
@@ -177,18 +174,4 @@ static inline void _vehicle_destroy_thread(struct vehicle_data *vehicle)
 {
     for (int i = 0; i < VEHICLE_THREAD_NUM; i++)
         pthread_join(vehicle->th[i], NULL);
-}
-
-static inline void _wait_signal(sync_t *sync)
-{
-    pthread_mutex_lock(&sync->lock);
-    pthread_cond_wait(&sync->cv, &sync->lock);
-    pthread_mutex_unlock(&sync->lock);
-}
-
-static inline void _send_signal(sync_t *sync)
-{
-    pthread_mutex_lock(&sync->lock);
-    pthread_cond_signal(&sync->cv);
-    pthread_mutex_unlock(&sync->lock);
 }

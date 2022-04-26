@@ -87,6 +87,20 @@ static inline int check_permission(int (*pfunc_exit)(void))
     return -EPERM;
 }
 
+static inline void wait_signal(sync_t *sync)
+{
+    pthread_mutex_lock(&sync->lock);
+    pthread_cond_wait(&sync->cv, &sync->lock);
+    pthread_mutex_unlock(&sync->lock);
+}
+
+static inline void send_signal(sync_t *sync)
+{
+    pthread_mutex_lock(&sync->lock);
+    pthread_cond_signal(&sync->cv);
+    pthread_mutex_unlock(&sync->lock);
+}
+
 ssize_t readn(int fd, void *ptr, size_t n);
 ssize_t writen(int fd, const void *ptr, size_t n);
 
