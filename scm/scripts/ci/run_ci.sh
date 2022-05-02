@@ -16,6 +16,7 @@ bash ${CI_DIR}/general_ci.sh
 #bash ${CI_DIR}/bash_ci.sh
 bash ${CI_DIR}/clang_ci.sh
 bash ${CI_DIR}/cmake_ci.sh
+bash ${CI_DIR}/cpp_ci.sh
 bash ${CI_DIR}/python_ci.sh
 
 # static analytics

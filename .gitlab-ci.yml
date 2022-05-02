@@ -29,6 +29,14 @@ CMake Test:
         - echo "This is the CMake CI check stage."
         - scm/scripts/ci/cmake_ci.sh
 
+C++ Language Test:
+    stage: lang_check
+    tags:
+        - pycounter
+    script:
+        - echo "This is the CPP language CI check stage."
+        - scm/scripts/ci/cpp_ci.sh
+
 C Language Test:
     extends: .caching
     stage: lang_check

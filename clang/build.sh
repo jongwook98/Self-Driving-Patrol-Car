@@ -18,24 +18,6 @@ function create_dir()
 	fi
 }
 
-function check_result()
-{
-	if [ ! -d "lib" ] || [ ! -d "include" ]
-	then
-		echo_func "[clang err] Failed to build the json-c" 1
-		exit 1
-	fi
-}
-
-function do_build()
-{
-	make clean
-	make -j "${CPU_NUM}"
-	make install
-
-	check_result
-}
-
 function build_for_clang()
 {
 	cd "${OUT_DIR}" || exit 1
