@@ -16,7 +16,7 @@ echo_func "[scm] cpplint checking" 0
 FILES=$(find . \
 	-type f \
 	-not -path '*/out/*' \
-	-not -path '*/clang/*' \
+	-not -path '*/core/*' \
 	\( -name "*.cpp" -o -name "*.h" \)
 )
 

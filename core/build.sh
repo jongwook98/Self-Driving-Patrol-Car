@@ -3,8 +3,8 @@
 ROOT_DIR=$(git rev-parse --show-toplevel)
 source "${ROOT_DIR}/scm/scripts/common/echo.sh"
 
-CLANG_DIR=${ROOT_DIR}/clang
-OUT_DIR=${CLANG_DIR}/out
+CORE_DIR=${ROOT_DIR}/core
+OUT_DIR=${CORE_DIR}/out
 
 CPU_NUM=$(grep -c processor /proc/cpuinfo)
 

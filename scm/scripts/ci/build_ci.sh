@@ -13,7 +13,7 @@ git config --global http.sslVerify false
 git submodule update --init
 
 # set up the environment to build
-cd "${ROOT_DIR}/clang"
+cd "${ROOT_DIR}/core"
 rm -rf out
 mkdir out
 

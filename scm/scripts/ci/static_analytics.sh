@@ -5,7 +5,7 @@ set -e
 ROOT_DIR=$(git rev-parse --show-toplevel)
 source "${ROOT_DIR}/scm/scripts/common/echo.sh"
 
-cd "${ROOT_DIR}/clang"
+cd "${ROOT_DIR}/core"
 pwd
 
 # static anaytics using cppcheck
