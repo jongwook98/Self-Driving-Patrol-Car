@@ -1,7 +1,11 @@
 #include <sdpc/common/sdpc_common.h>
+#include <sdpc/common/sdpc_msgque.h>
 #include <sdpc/vehicle_recognition/sdpc_vehicle.h>
 
 #define VEHICLE_THREAD_NUM 3
+
+#define LIDAR_DONE 0x1
+#define DEEPLEARNING_DONE 0x2
 
 struct vehicle_data
 {
@@ -88,19 +92,26 @@ static void *_main_thread(void *arg)
     sync_t *lidar_sync = vehicle->lidar_sync;
     sync_t *deep_sync = vehicle->deep_sync;
 
+    char read_buf[4] = {
+        0,
+    };
+
     /* send */
     send_signal(main_sync);
 
     while (vehicle->escape)
     {
-        /* TODO */
-        sleep(0);
-
         /* broadcast */
         send_signal(lidar_sync);
         send_signal(deep_sync);
 
-        /* wait to use the message queue */
+        sdpc_message_queue_receive(VEHICLE_MODE, read_buf, sizeof(read_buf));
+#if 1
+        for (int i = 0; i < 4; i++)
+            fprintf(stderr, "0x%02x ", read_buf[i]);
+        fprintf(stderr, "\n");
+#endif
+        memset(read_buf, 0x0, sizeof(read_buf));
     }
 
     return NULL;
@@ -111,6 +122,7 @@ static void *_lidar_thread(void *arg)
     struct vehicle_data *vehicle = (struct vehicle_data *)arg;
     sync_t *main_sync = vehicle->main_sync;
     sync_t *lidar_sync = vehicle->lidar_sync;
+    char send_data[] = {MQ_START, VEHICLE_MODE, LIDAR_DONE, MQ_STOP};
 
     /* send */
     send_signal(main_sync);
@@ -123,6 +135,7 @@ static void *_lidar_thread(void *arg)
         /* TODO */
 
         /* send to use the message queue */
+        sdpc_message_queue_send(VEHICLE_MODE, send_data, sizeof(send_data));
     }
 
     return NULL;
@@ -133,6 +146,7 @@ static void *_deeplearning_thread(void *arg)
     struct vehicle_data *vehicle = (struct vehicle_data *)arg;
     sync_t *main_sync = vehicle->main_sync;
     sync_t *deep_sync = vehicle->deep_sync;
+    char send_data[] = {MQ_START, VEHICLE_MODE, DEEPLEARNING_DONE, MQ_STOP};
 
     /* send */
     send_signal(main_sync);
@@ -145,6 +159,7 @@ static void *_deeplearning_thread(void *arg)
         /* TODO */
 
         /* send to use the message queue */
+        sdpc_message_queue_send(VEHICLE_MODE, send_data, sizeof(send_data));
     }
 
     return NULL;
@@ -172,6 +187,13 @@ static inline int _vehicle_create_thread(struct vehicle_data *vehicle)
 
 static inline void _vehicle_destroy_thread(struct vehicle_data *vehicle)
 {
+    /* waiting the tread sequence */
+    usleep(1);
+
+    /* sending the signal for the canceling */
+    send_signal(vehicle->lidar_sync);
+    send_signal(vehicle->deep_sync);
+
     for (int i = 0; i < VEHICLE_THREAD_NUM; i++)
         pthread_join(vehicle->th[i], NULL);
 }
