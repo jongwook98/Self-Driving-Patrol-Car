@@ -12,6 +12,7 @@ set(
   "${CMAKE_CURRENT_SOURCE_DIR}/common/sdpc_common.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/common/sdpc_lidar.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/common/sdpc_main.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/common/sdpc_msgque.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/common/sdpc_uart.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/lane_recognition/sdpc_lane.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/vehicle_recognition/sdpc_vehicle.c"
@@ -30,7 +31,7 @@ add_executable(${PROJECT_NAME} ${SDPC_SRC})
 target_compile_options(${PROJECT_NAME} PRIVATE -W -Wall -g -ggdb -fPIC)
 
 # set the library information for the target
-target_link_libraries(${PROJECT_NAME} PRIVATE "-static" pthread)
+target_link_libraries(${PROJECT_NAME} PRIVATE "-static" pthread rt)
 
 # set the macro for the target
 target_compile_definitions(${PROJECT_NAME} PRIVATE -D_STANDALONE_VERSION)
@@ -42,4 +43,4 @@ add_library(${SDPC_SHARED_LIB} SHARED ${SDPC_SRC})
 set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
 
 # set the library information for the *.so
-target_link_libraries(${SDPC_SHARED_LIB} PRIVATE pthread)
+target_link_libraries(${SDPC_SHARED_LIB} PRIVATE pthread rt)
