@@ -7,7 +7,6 @@ COMMON_DIR=${ROOT_DIR}/scm/scripts/common
 
 source "${COMMON_DIR}/echo.sh"
 
-IMAGE_PATH="*/image"
 
 cd "${ROOT_DIR}"
 pwd
@@ -27,9 +26,11 @@ echo_func "[scm] Remove the trailing lines" 0
 find . \
 	-type f \
 	-not -path './.git/*' -a \
-	-not -path "${THIRD_PATH_PATH}/*" -a \
-	-not -path "${OUT_PATH}/*" -a \
-	-not -path "${IMAGE_PATH}/*" \
+	-not -path "${THIRD_PATH_PATH}" -a \
+	-not -path "${OUT_PATH}" -a \
+	-not -path "${IMAGE_PATH}" -a \
+	-not -path "${MCU_CORE_PATH}" -a \
+	-not -path "${MCU_DRIVER_PATH}" \
 	-exec sed -i '${/^$/d;}' {} \;
 
 # trim whitespcae
@@ -37,9 +38,11 @@ echo_func "[scm] Trim whitespace" 0
 find . \
 	-type f \
 	-not -path './.git/*' -a \
-	-not -path "${THIRD_PATH_PATH}/*" -a \
-	-not -path "${OUT_PATH}/*" -a \
-	-not -path "${IMAGE_PATH}/*" \
+	-not -path "${THIRD_PATH_PATH}" -a \
+	-not -path "${OUT_PATH}" -a \
+	-not -path "${IMAGE_PATH}" -a \
+	-not -path "${MCU_CORE_PATH}" -a \
+	-not -path "${MCU_DRIVER_PATH}" \
 	-exec sed -i 's/[[:space:]]*$//' {} \;
 
 "${COMMON_DIR}/diff_check.sh"

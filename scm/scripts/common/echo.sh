@@ -6,6 +6,9 @@ GREEN_CR="\033[0;32m"
 
 export THIRD_PATH_PATH="*/third_party/*"
 export OUT_PATH="*/out/*"
+export IMAGE_PATH="*/image/*"
+export MCU_CORE_PATH="*/Core/*"
+export MCU_DRIVER_PATH="*/Drivers/*"
 
 echo_func()
 {

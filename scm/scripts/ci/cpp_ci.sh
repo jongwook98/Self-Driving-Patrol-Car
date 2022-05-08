@@ -15,8 +15,10 @@ echo_func "[scm] cpplint checking" 0
 
 FILES=$(find . \
 	-type f \
-	-not -path '*/out/*' \
-	-not -path '*/core/*' \
+	-not -path "${OUT_PATH}" -a \
+	-not -path "*/core/*" -a \
+	-not -path "${MCU_CORE_PATH}" -a \
+	-not -path "${MCU_DRIVER_PATH}" \
 	\( -name "*.cpp" -o -name "*.h" \)
 )
 
