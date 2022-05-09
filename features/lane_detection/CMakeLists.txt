@@ -16,7 +16,10 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # make exe file
 add_executable(
   ${PROJECT_NAME}
-  main.cpp
+  ${CMAKE_SOURCE_DIR}/main.cpp
+  ${CMAKE_SOURCE_DIR}/common/message_queue.cpp
+  ${CMAKE_SOURCE_DIR}/camera/lane_detection.cpp
+  ${CMAKE_SOURCE_DIR}/camera/traffic_light.cpp
 )
 
 # set the library informatio for the target
