@@ -60,10 +60,10 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
-Core/UserCode/Src/user_main.c \
-Core/UserCode/Src/user_tim.c \
-Core/UserCode/Src/user_usart.c \
-Core/Matlab/control_flow_ert_rtw/control_flow.c
+user_code/Src/user_main.c \
+user_code/Src/user_tim.c \
+user_code/Src/user_usart.c \
+matlab/control_flow_ert_rtw/control_flow.c
 
 
 # ASM sources
@@ -126,9 +126,9 @@ C_INCLUDES =  \
 -IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
 -IDrivers/CMSIS/Include \
--ICore/UserCode/Inc \
--ICore/Matlab/control_flow_ert_rtw \
--ICore/Matlab/simulink/include
+-Iuser_code/Inc \
+-Imatlab/control_flow_ert_rtw \
+-Imatlab/simulink/include
 
 
 # compile gcc flags

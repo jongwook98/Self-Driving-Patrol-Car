@@ -32,7 +32,7 @@ void main_init(void)
 
 void main_while(void)
 {
-	if(st_ptcl.start == 0x55 || st_ptcl.stop == 0x77) {
+	if(st_ptcl.start == 0x55 && st_ptcl.stop == 0x77) {
 		TxPrintf("%x %x %x %x %x\n", st_ptcl.start, st_ptcl.mode, 
 						st_ptcl.flag.all, st_ptcl.angle, st_ptcl.stop);
 	

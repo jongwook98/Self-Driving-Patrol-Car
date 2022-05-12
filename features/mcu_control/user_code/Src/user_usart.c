@@ -16,7 +16,8 @@ static uint8_t buf;
 static uint8_t rxBuffer[BUF_SIZE];
 static uint8_t txBuffer[BUF_SIZE];
 
-static uint8_t buf_latte[5];
+#define LAT_BUF_SIZE 6
+static uint8_t buf_latte[LAT_BUF_SIZE];
 static uint8_t rx_latte[BUF_SIZE];
 //static uint8_t tx_latte[BUF_SIZE];
 
@@ -72,7 +73,7 @@ void RxBuffer(uint8_t *buffer, uint8_t *_buf)
 
 void linux_protocol(uint8_t *buffer, uint8_t *_buf)
 {
-	if(*_buf == 0x55 || *(_buf + 4) == 0x77) {
+	if(*_buf == 0x55 && *(_buf + 4) == 0x77) {
 		st_ptcl.start = *(_buf + 0);
 		st_ptcl.mode = *(_buf + 1);
 		st_ptcl.flag.all = *(_buf + 2);
@@ -85,7 +86,7 @@ void linux_protocol(uint8_t *buffer, uint8_t *_buf)
 		control_flow.inputs->flag.move		= st_ptcl.flag.bit.move_onoff;			
 	}
 
-	memset((void*)_buf, 0x00, sizeof(uint8_t)*5);
+	memset((void*)_buf, 0x00, sizeof(uint8_t)*LAT_BUF_SIZE);
 /*
 	strcat((char*)buffer, (char*)_buf);
 
@@ -167,7 +168,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 	if(huart->Instance == USART2) {
 		linux_protocol(rx_latte, buf_latte);
-		HAL_UART_Receive_IT(&huart2, buf_latte, 5);
+		HAL_UART_Receive_IT(&huart2, buf_latte, LAT_BUF_SIZE);
 	}
 	
 	RX_LED_OFF;
@@ -176,6 +177,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 void receive_uart_start_it(void)
 {
 	HAL_UART_Receive_IT(&huart1, &buf, 1);
-	HAL_UART_Receive_IT(&huart2, buf_latte, 5);
+	HAL_UART_Receive_IT(&huart2, buf_latte, LAT_BUF_SIZE);
 }
 
