@@ -38,12 +38,12 @@ OBJ_DIR = $(BUILD_DIR)/objects
 # C sources
 C_SOURCES =  \
 Core/Src/main.c \
-Core/Src/motor.c \
 Core/Src/gpio.c \
 Core/Src/tim.c \
 Core/Src/usart.c \
 Core/Src/stm32f4xx_it.c \
 Core/Src/stm32f4xx_hal_msp.c \
+Core/Src/system_stm32f4xx.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c \
@@ -60,8 +60,10 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
-Core/Src/system_stm32f4xx.c \
-Core/control_flow_ert_rtw/control_flow.c
+Core/UserCode/Src/user_main.c \
+Core/UserCode/Src/user_tim.c \
+Core/UserCode/Src/user_usart.c \
+Core/Matlab/control_flow_ert_rtw/control_flow.c
 
 
 # ASM sources
@@ -124,8 +126,9 @@ C_INCLUDES =  \
 -IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
 -IDrivers/CMSIS/Include \
--ICore/control_flow_ert_rtw \
--ICore/simulink/include
+-ICore/UserCode/Inc \
+-ICore/Matlab/control_flow_ert_rtw \
+-ICore/Matlab/simulink/include
 
 
 # compile gcc flags

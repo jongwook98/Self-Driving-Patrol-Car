@@ -31,9 +31,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <math.h>
-#include "struct.h"
-#include "control_flow.h"
+#include <user_main.h>
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
