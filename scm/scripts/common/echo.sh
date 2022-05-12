@@ -9,6 +9,7 @@ export OUT_PATH="*/out/*"
 export IMAGE_PATH="*/image/*"
 export MCU_CORE_PATH="*/Core/*"
 export MCU_DRIVER_PATH="*/Drivers/*"
+export MCU_MATALB_PATH="*/matlab/*"
 
 echo_func()
 {

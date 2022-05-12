@@ -30,7 +30,8 @@ find . \
 	-not -path "${OUT_PATH}" -a \
 	-not -path "${IMAGE_PATH}" -a \
 	-not -path "${MCU_CORE_PATH}" -a \
-	-not -path "${MCU_DRIVER_PATH}" \
+	-not -path "${MCU_DRIVER_PATH}" -a \
+	-not -path "${MCU_MATALB_PATH}" \
 	-exec sed -i '${/^$/d;}' {} \;
 
 # trim whitespcae
@@ -42,7 +43,8 @@ find . \
 	-not -path "${OUT_PATH}" -a \
 	-not -path "${IMAGE_PATH}" -a \
 	-not -path "${MCU_CORE_PATH}" -a \
-	-not -path "${MCU_DRIVER_PATH}" \
+	-not -path "${MCU_DRIVER_PATH}" -a \
+	-not -path "${MCU_MATALB_PATH}" \
 	-exec sed -i 's/[[:space:]]*$//' {} \;
 
 "${COMMON_DIR}/diff_check.sh"

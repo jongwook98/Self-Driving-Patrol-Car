@@ -17,8 +17,10 @@ FILES=$(find . \
 	-type f \
 	-not -path "${OUT_PATH}" -a \
 	-not -path "*/core/*" -a \
+	-not -path "*/user_code/*" -a \
 	-not -path "${MCU_CORE_PATH}" -a \
-	-not -path "${MCU_DRIVER_PATH}" \
+	-not -path "${MCU_DRIVER_PATH}" -a \
+	-not -path "${MCU_MATALB_PATH}" \
 	\( -name "*.cpp" -o -name "*.h" \)
 )
 

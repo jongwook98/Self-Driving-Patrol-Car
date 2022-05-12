@@ -60,9 +60,9 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
-user_code/Src/user_main.c \
-user_code/Src/user_tim.c \
-user_code/Src/user_usart.c \
+user_code/src/user_main.c \
+user_code/src/user_tim.c \
+user_code/src/user_usart.c \
 matlab/control_flow_ert_rtw/control_flow.c
 
 
@@ -126,7 +126,7 @@ C_INCLUDES =  \
 -IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
 -IDrivers/CMSIS/Include \
--Iuser_code/Inc \
+-Iuser_code/include \
 -Imatlab/control_flow_ert_rtw \
 -Imatlab/simulink/include
 

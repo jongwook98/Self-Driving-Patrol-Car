@@ -17,7 +17,8 @@ py_files=$(find . \
 	-not -path "${THIRD_PATH_PATH}" -a \
 	-not -path "${OUT_PATH}" -a \
 	-not -path "${MCU_CORE_PATH}" -a \
-	-not -path "${MCU_DRIVER_PATH}" \
+	-not -path "${MCU_DRIVER_PATH}" -a \
+	-not -path "${MCU_MATALB_PATH}" \
 	-name '*.py')
 if [[ "${py_files}" == "" ]]
 then
