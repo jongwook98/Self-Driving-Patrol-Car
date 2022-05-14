@@ -3,6 +3,8 @@
 #ifndef LANE_DETECTION_H
 #define LANE_DETECTION_H
 
+#include <lane_detection/main.h>
+
 #include <fcntl.h>
 #include <stdlib.h>
 
@@ -14,8 +16,6 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
-
-#include "lane_detection/main.h"
 
 class LaneDetection {
 private: // NOLINT
@@ -30,20 +30,28 @@ private: // NOLINT
   float slope;
   float r_slope, l_slope;
   float diff;
-  float steering_angle;
+  float calculated_angle;
+
+  // LaneDetection
+  double rho = 1;
+  double theta = CV_PI / 180;
+  int threshold = 50;
+  double min_line_length = 100;
+  double max_line_gap = 100;
 
 public: // NOLINT
   LaneDetection()
       : width(800), l_x1(0), l_x2(0), r_x1(0), r_x2(0), line_flag{0, 0},
         c_x1(400), c_y1(600), c_y2(0), c_x2(0), slope(0.0), r_slope(0),
-        l_slope(0), diff(0), steering_angle(0) {}
+        l_slope(0), diff(0), calculated_angle(0) {}
   ~LaneDetection() {}
   cv::Mat RegionOfInterset(cv::Mat img, cv::Point *vertices);
   cv::Mat FindColorHsv(cv::Mat img);
-  float EdgeLines(cv::Mat img, const cv::Mat &line_result,
-                  std::vector<cv::Vec4i> lines);
-  float CalculationAngle(float servo_direct, int line_flag[],
-                         const cv::Mat &line_result, int l_x2, int r_x1);
+  int EdgeLines(cv::Mat img, const cv::Mat &line_result,
+                std::vector<cv::Vec4i> lines);
+  int CalculationAngle(float servo_direct, int line_flag[],
+                       const cv::Mat &line_result, int l_x2, int r_x1);
+  int StraightLaneAngle(cv::Mat img);
 };
 
 #endif /* LANE_DETECTION_H */

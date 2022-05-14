@@ -1,8 +1,7 @@
 /* Copyright 2022. Park, Sangjae/Bae, Youwon all rights reserved */
 
-#include "lane_detection/camera/lane_detection.h"
-
-// using namespace laneDetection;
+#include <lane_detection/camera/lane_detection.h>
+#include <lane_detection/camera/traffic_light.h>
 
 cv::Mat LaneDetection::RegionOfInterset(cv::Mat img, cv::Point *vertices) {
     cv::Mat mask = cv::Mat::zeros(img.size(), CV_8UC3);
@@ -22,14 +21,18 @@ cv::Mat LaneDetection::FindColorHsv(cv::Mat img) {
 
     cv::Mat mask_white = cv::Mat::zeros(img.size(), CV_8UC1);
     cv::Scalar lower_white = cv::Scalar(0, 0, 200);
-    cv::Scalar upper_white = cv::Scalar(180, 50, 255);
+    cv::Scalar upper_white = cv::Scalar(180, 50, 235);
     cv::inRange(HSV, lower_white, upper_white, HSV);
 
     return HSV;
 }
 
-float LaneDetection::EdgeLines(cv::Mat img, const cv::Mat &line_result,
-                                 std::vector<cv::Vec4i> lines) {
+int LaneDetection::EdgeLines(cv::Mat img, const cv::Mat &line_result,
+                             std::vector<cv::Vec4i> lines) {
+    l_slope = 0;
+    r_slope = 0;
+    line_flag[0] = 0;
+    line_flag[1] = 0;
     for ( size_t i = 0; i < lines.size(); i++ ) {
         cv::Vec4i line = lines[i];
         int x1 = line[0];
@@ -57,7 +60,7 @@ float LaneDetection::EdgeLines(cv::Mat img, const cv::Mat &line_result,
                 l_x2 = x2;
                 line_flag[0] = 1;
             } else {
-// right side edge
+                // right side edge
                 cv::line(line_result, cv::Point(x1, y1), cv::Point(x2, y2),
                          cv::Scalar(0, 255, 0), 2, cv::LINE_AA);
                 r_slope = slope;
@@ -68,27 +71,60 @@ float LaneDetection::EdgeLines(cv::Mat img, const cv::Mat &line_result,
         }
     }
     float servo_direct = (l_slope+r_slope)/2;
-    LaneDetection cal;
-    return cal.CalculationAngle(servo_direct, line_flag,
+    return CalculationAngle(servo_direct, line_flag,
                                   line_result, l_x2, r_x2);
 }
 
-float LaneDetection::CalculationAngle(float servo_direct, int line_flag[],
+int LaneDetection::CalculationAngle(float servo_direct, int line_flag[],
                   const cv::Mat &line_result, int l_x2, int r_x1) {
-    if (line_flag[0] == 1 && line_flag[1] == 1) {
+    c_x2 = 400;
+    calculated_angle = 0;
+        if (line_flag[0] == 1 && line_flag[1] == 1) {
         c_x2 = ((l_x2 + r_x1)/2);
     } else {
-        c_x2 = (((600-400*servo_direct)/servo_direct)*(-1));
+        c_x2 = (600/servo_direct) * (-1) + 400;
     }
     diff = (c_x2-400);
-    steering_angle = tan(diff/600)*10;
-    if (steering_angle > 45)
-        steering_angle = 45;
-    else if (steering_angle < -45)
-        steering_angle = -45;
+    calculated_angle = atan2(diff, 600)*180/3.141591;
+    if (calculated_angle > 90)
+        calculated_angle = 90;
+    else if (calculated_angle < -90)
+        calculated_angle = -90;
 
     cv::line(line_result, cv::Point(c_x1, c_y1), cv::Point(c_x2, c_y2),
              cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
 
-    return steering_angle;
+    return calculated_angle;
+}
+
+int LaneDetection::StraightLaneAngle(cv::Mat src) {
+    cv::Point rect[4];
+    rect[0] = cv::Point(0, 400);
+    rect[1] = cv::Point(0, 600);
+    rect[2] = cv::Point(800, 600);
+    rect[3] = cv::Point(800, 400);
+
+    cv::Mat ROI = RegionOfInterset(src, rect);
+    cv::Mat HSV = FindColorHsv(ROI);
+
+    cv::Mat filtering, closing;
+    cv::bilateralFilter(HSV, filtering, 5, 100, 100);
+    cv::morphologyEx(filtering, closing, cv::MORPH_CLOSE, cv::Mat());
+
+    cv::Mat canny;
+    cv::Canny(closing, canny, 150, 270);
+
+    // HOUGH TRANSFORM
+    std::vector<cv::Vec4i> lines;
+    cv::HoughLinesP(canny, lines, rho, theta, threshold,
+                    min_line_length, max_line_gap);
+
+    cv::Mat line_result = cv::Mat::zeros(src.size(), CV_8UC3);
+    int straight_lane_angle = EdgeLines(src, line_result, lines);
+
+    cv::Mat result;
+    cv::addWeighted(line_result, 1, src, 0.6, 0., result);
+    cv::imshow("RESULT", result);
+
+    return straight_lane_angle;
 }
