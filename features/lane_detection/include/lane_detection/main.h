@@ -30,7 +30,7 @@ public: // NOLINT
   uint8_t traffic_light;
   uint8_t driving_status_flag;
   uint8_t data[2] = {0};
-  const char *mq_path[1] = {"/lane2"};
+  const char *mq_path[1] = {"/lane"};
   const uint8_t mq_msg_size[1] = {sizeof(uint8_t) * 5};
 };
 #endif /* MAIN_H */

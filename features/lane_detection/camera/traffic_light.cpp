@@ -46,15 +46,15 @@ int TrafficLight::FindTrafficLight(cv::Mat img) {
             int center_y = circles[i][1];
             int radius = circles[i][2];
             int width = 2*circles[i][2];
-            int height = 2*circles[i][2];
-            int green_cnt, green_data, red_data, blue_data;
+            int green_data, red_data, blue_data;
+            int green_cnt = 0;
             int total_pixel = cvFloor(3.14159*radius*radius);
 
-            for (int k = center_x-width; k <= center_x+width; k++) {
-                for (int j = center_y-height; j <= center_y+height; j++) {
-                    int blue_data = img.at<cv::Vec3b>(j, k)[0];
-                    int green_data = img.at<cv::Vec3b>(j, k)[1];
-                    int red_data = img.at<cv::Vec3b>(j, k)[2];
+            for (int n = center_x-width; n <= center_x+width; n++) {
+                for (int m = center_y-width; m <= center_y+width; m++) {
+                    blue_data = img.at<cv::Vec3b>(m, n)[0];
+                    green_data = img.at<cv::Vec3b>(m, n)[1];
+                    red_data = img.at<cv::Vec3b>(m, n)[2];
 
                     if (green_data-blue_data > 20 && green_data-red_data > 20
                         && green_data > 100) {
