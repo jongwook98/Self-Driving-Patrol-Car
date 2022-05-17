@@ -9,6 +9,7 @@ typedef enum message_queue_mode
     MQ_START = 0x55,
     MQ_STOP = 0x77,
     VEHICLE_MODE = 0,
+    LANE_MODE,
     TOTAL_MQ
 } mq_mode_e;
 

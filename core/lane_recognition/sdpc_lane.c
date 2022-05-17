@@ -1,4 +1,6 @@
 #include <sdpc/common/sdpc_common.h>
+#include <sdpc/common/sdpc_msgque.h>
+#include <sdpc/common/sdpc_uart.h>
 #include <sdpc/lane_recognition/sdpc_lane.h>
 
 struct lane_data
@@ -71,11 +73,21 @@ static void *_do_thread(void *arg)
     struct lane_data *lane = (struct lane_data *)arg;
     sync_t *cur_sync = lane->cur_sync;
 
+    char read_buf[5] = {
+        0,
+    };
+
     send_signal(cur_sync);
 
     while (lane->escape)
     {
         /* TODO */
+        sdpc_message_queue_receive(LANE_MODE, read_buf, sizeof(read_buf));
+
+        char *send_uart_buf = (char *)read_buf;
+        sdpc_uart_send(send_uart_buf);
+
+        memset(read_buf, 0x0, sizeof(read_buf));
     }
 
     return NULL;

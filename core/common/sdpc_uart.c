@@ -3,7 +3,7 @@
 #include <sdpc/common/sdpc_common.h>
 #include <sdpc/common/sdpc_uart.h>
 
-#define UART_PATH "/dev/ttyUSB0"
+#define UART_PATH "/dev/ttyXRUSB0"
 
 struct sdpc_uart
 {
@@ -170,7 +170,9 @@ static int _uart_set_attributs(int fd, int speed, int parity)
     tty.c_cflag &= ~(PARENB | PARODD);
     tty.c_cflag |= parity;
     tty.c_cflag &= ~(CSTOPB);
-    tty.c_cflag &= ~(CRTSCTS);
+
+    /* Enable hw flow control */
+    tty.c_cflag |= (CRTSCTS);
 
     ret = tcsetattr(fd, TCSANOW, &tty);
     FORMULA_GUARD(ret, -EPERM, "Failed to set attributes. %d", ret);

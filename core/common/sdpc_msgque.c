@@ -27,8 +27,8 @@ int sdpc_message_queue_init(void)
     for (i = 0; i < TOTAL_MQ; i++)
         FORMULA_GUARD(g_msgque[i], -EPERM, ERR_INVALID_PTR);
 
-    const char *mq_path[] = {"/vehicle"};
-    const long mq_msg_size[] = {sizeof(char) * 4};
+    const char *mq_path[] = {"/vehicle", "/lane"};
+    const long mq_msg_size[] = {sizeof(char) * 4, sizeof(char) * 5};
 
     for (i = 0; i < TOTAL_MQ; i++)
     {
