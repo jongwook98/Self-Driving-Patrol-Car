@@ -17,9 +17,9 @@ int main() {
     Lane val;
     MessageQueue *MQ;
     MQ = new MessageQueue(val.mq_path[0], val.mq_msg_size[0]);
-    cv::VideoCapture cap(0);
-    // cv::VideoCapture cap(cv::CAP_V4L2);
-    cap.set(cv::CAP_PROP_FRAME_WIDTH, 800);
+    // cv::VideoCapture cap(0);
+    cv::VideoCapture cap(cv::CAP_V4L2);
+    cap.set(cv::CAP_PROP_FRAME_WIDTH, 1080);
     cap.set(cv::CAP_PROP_FRAME_HEIGHT, 600);
     if (!cap.isOpened()) {
         printf("Can't open the camera");

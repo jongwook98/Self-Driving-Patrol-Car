@@ -26,6 +26,7 @@ private: // NOLINT
   int c_y1;
   int c_y2;
   int c_x2;
+  int pre_c_x2;
 
   float slope;
   float r_slope, l_slope;
@@ -36,14 +37,14 @@ private: // NOLINT
   double rho = 1;
   double theta = CV_PI / 180;
   int threshold = 50;
-  double min_line_length = 100;
+  double min_line_length = 25;
   double max_line_gap = 100;
 
 public: // NOLINT
   LaneDetection()
       : width(800), l_x1(0), l_x2(0), r_x1(0), r_x2(0), line_flag{0, 0},
         c_x1(400), c_y1(600), c_y2(0), c_x2(0), slope(0.0), r_slope(0),
-        l_slope(0), diff(0), calculated_angle(0) {}
+        l_slope(0), diff(0), calculated_angle(0), pre_c_x2(540) {}
   ~LaneDetection() {}
   cv::Mat RegionOfInterset(cv::Mat img, cv::Point *vertices);
   cv::Mat FindColorHsv(cv::Mat img);

@@ -21,7 +21,7 @@ cv::Mat LaneDetection::FindColorHsv(cv::Mat img) {
 
     cv::Mat mask_white = cv::Mat::zeros(img.size(), CV_8UC1);
     cv::Scalar lower_white = cv::Scalar(0, 0, 200);
-    cv::Scalar upper_white = cv::Scalar(180, 50, 235);
+    cv::Scalar upper_white = cv::Scalar(180, 50, 245);
     cv::inRange(HSV, lower_white, upper_white, HSV);
 
     return HSV;
@@ -53,20 +53,26 @@ int LaneDetection::EdgeLines(cv::Mat img, const cv::Mat &line_result,
             fabsf(slope) < line_high_threshold) {
             if ( x1 < width / 2 ) {
                 // left side edge
-                cv::line(line_result, cv::Point(x1, y1), cv::Point(x2, y2),
-                         cv::Scalar(255, 0, 0), 2, cv::LINE_AA);
-                l_slope = slope;
-                l_x1 = x1;
-                l_x2 = x2;
-                line_flag[0] = 1;
+                if (slope < 0) {
+                    cv::line(line_result, cv::Point(x1, y1),
+                             cv::Point(x2, y2),
+                             cv::Scalar(255, 0, 0), 2, cv::LINE_AA);
+                    l_slope = slope;
+                    l_x1 = x1;
+                    l_x2 = x2;
+                    line_flag[0] = 1;
+                } else {}
             } else {
                 // right side edge
-                cv::line(line_result, cv::Point(x1, y1), cv::Point(x2, y2),
-                         cv::Scalar(0, 255, 0), 2, cv::LINE_AA);
-                r_slope = slope;
-                r_x1 = x1;
-                r_x2 = x2;
-                line_flag[1] = 1;
+                if (slope > 0) {
+                    cv::line(line_result, cv::Point(x1, y1),
+                             cv::Point(x2, y2),
+                             cv::Scalar(0, 255, 0), 2, cv::LINE_AA);
+                    r_slope = slope;
+                    r_x1 = x1;
+                    r_x2 = x2;
+                    line_flag[1] = 1;
+                } else {}
             }
         }
     }
@@ -77,14 +83,26 @@ int LaneDetection::EdgeLines(cv::Mat img, const cv::Mat &line_result,
 
 int LaneDetection::CalculationAngle(float servo_direct, int line_flag[],
                   const cv::Mat &line_result, int l_x2, int r_x1) {
-    c_x2 = 400;
+    c_x2 = 540;
     calculated_angle = 0;
-        if (line_flag[0] == 1 && line_flag[1] == 1) {
-        c_x2 = ((l_x2 + r_x1)/2);
+    if (line_flag[0] == 1 && line_flag[1] == 1) {
+        c_x2 = (l_x2 + r_x1)/2;
+    } else if (line_flag[0] == 1 || line_flag[1] == 1) {
+        if (l_slope < -1.2) {
+            r_x1 = l_x2 + 780;
+            c_x2 = (l_x2 + r_x1)/2;
+        } else if (r_slope > 1.2) {
+            l_x2 = r_x1 - 780;
+            c_x2 = (l_x2 + r_x1)/2;
+        } else {
+        c_x2 = ((600/servo_direct) * (-1))*0.5 + 540;
+        }
     } else {
-        c_x2 = (600/servo_direct) * (-1) + 400;
+        c_x2 = pre_c_x2;
     }
-    diff = (c_x2-400);
+    pre_c_x2 = c_x2;
+
+    diff = (c_x2-540);
     calculated_angle = atan2(diff, 600)*180/3.141591;
     if (calculated_angle > 90)
         calculated_angle = 90;
@@ -99,10 +117,10 @@ int LaneDetection::CalculationAngle(float servo_direct, int line_flag[],
 
 int LaneDetection::StraightLaneAngle(cv::Mat src) {
     cv::Point rect[4];
-    rect[0] = cv::Point(0, 400);
+    rect[0] = cv::Point(0, 480);
     rect[1] = cv::Point(0, 600);
-    rect[2] = cv::Point(800, 600);
-    rect[3] = cv::Point(800, 400);
+    rect[2] = cv::Point(1080, 600);
+    rect[3] = cv::Point(1080, 480);
 
     cv::Mat ROI = RegionOfInterset(src, rect);
     cv::Mat HSV = FindColorHsv(ROI);
