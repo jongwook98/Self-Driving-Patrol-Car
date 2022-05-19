@@ -26,7 +26,7 @@ struct message_q {
 
 class Lane {
 public: // NOLINT
-  uint8_t steering_angle;
+  int steering_angle;
   uint8_t traffic_light;
   uint8_t driving_status_flag;
   uint8_t data[2] = {0};

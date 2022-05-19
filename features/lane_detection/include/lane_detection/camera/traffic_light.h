@@ -9,14 +9,14 @@
 
 class TrafficLight {
 private: // NOLINT
-  int light_color;
+  uint8_t light_color;
   double sigma_color;
   double sigma_space;
 
 public: // NOLINT
   TrafficLight() : light_color(0), sigma_color(10), sigma_space(10) {}
   ~TrafficLight() {}
-  int FindTrafficLight(cv::Mat img);
+  uint8_t FindTrafficLight(cv::Mat img);
 };
 
 #endif /* TRAFFIC_LIGHT_H */

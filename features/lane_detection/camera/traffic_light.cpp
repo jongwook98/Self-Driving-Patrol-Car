@@ -2,40 +2,40 @@
 
 #include "lane_detection/camera/traffic_light.h"
 
-int TrafficLight::FindTrafficLight(cv::Mat img) {
+uint8_t TrafficLight::FindTrafficLight(cv::Mat img) {
     LaneDetection traffic;
 
     cv::Point traffic_rect[4];
-    traffic_rect[0] = cv::Point(0, 0);
-    traffic_rect[1] = cv::Point(0, 300);
-    traffic_rect[2] = cv::Point(800, 300);
-    traffic_rect[3] = cv::Point(800, 0);
+    traffic_rect[0] = cv::Point(540, 0);
+    traffic_rect[1] = cv::Point(540, 300);
+    traffic_rect[2] = cv::Point(1080, 300);
+    traffic_rect[3] = cv::Point(1080, 0);
 
     cv::Mat traffic_roi = traffic.RegionOfInterset(img, traffic_rect);
+    cv::rectangle(img, cv::Rect(traffic_rect[0], traffic_rect[2]),
+                  cv::Scalar(0, 255, 0), 2, 8, 0);
 
     cv::Mat gray_img, filtered_image;
     cv::cvtColor(traffic_roi, gray_img, CV_BGR2GRAY);
-
-    cv::bilateralFilter(gray_img, filtered_image, -1, sigma_color, sigma_space);
-    // imshow("dstImage", FilteredImage);
+    cv::GaussianBlur(gray_img, filtered_image, cv::Size(7, 7), 0);
 
     std::vector<cv::Vec3f> circles;
-
     cv::HoughCircles(filtered_image, circles, CV_HOUGH_GRADIENT,
-                 2, 50, 200, 70, 10, 30);
+                     2, 50, 200, 70, 20, 35);
+
+    light_color = 0;
 
     for (size_t i = 0; i < circles.size(); i++) {
-        cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-        int radius_round = cvRound(circles[i][2]);
-        cv::circle(gray_img, center, 3, cv::Scalar(0, 0, 255), -1, 8, 0);
-        cv::circle(gray_img, center, radius_round,
-                   cv::Scalar(0, 0, 255), 3, 8, 0);
-        cv::imshow("gray image", gray_img);
         int k = circles[i][0];   // x
         int j = circles[i][1];   // y
+        int r = circles[i][2];   // r
         int pixel_blue = img.at<cv::Vec3b>(j, k)[0];
         int pixel_green = img.at<cv::Vec3b>(j, k)[1];
         int pixel_red = img.at<cv::Vec3b>(j, k)[2];
+
+        cv::Point center(cvRound(k), cvRound(j));
+        int radius_round = cvRound(r);
+        cv::circle(img, center, radius_round, cv::Scalar(0, 0, 255), 3, 8, 0);
 
         if (pixel_red-pixel_blue > 20 && pixel_red-pixel_green > 20 &&
             pixel_red > 100) {  // red light

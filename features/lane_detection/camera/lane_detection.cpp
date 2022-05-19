@@ -115,34 +115,56 @@ int LaneDetection::CalculationAngle(float servo_direct, int line_flag[],
     return calculated_angle;
 }
 
-int LaneDetection::StraightLaneAngle(cv::Mat src) {
+int LaneDetection::StraightLaneAngle(cv::Mat src, uint8_t turn_dir) {
+    int straight_lane_angle = 0;
+
+    printf("turn_dir : %d\n", turn_dir);
+    printf("\n");
+
     cv::Point rect[4];
     rect[0] = cv::Point(0, 480);
     rect[1] = cv::Point(0, 600);
     rect[2] = cv::Point(1080, 600);
     rect[3] = cv::Point(1080, 480);
 
-    cv::Mat ROI = RegionOfInterset(src, rect);
-    cv::Mat HSV = FindColorHsv(ROI);
+    cv::rectangle(src, cv::Rect(rect[0], rect[2]),
+                  cv::Scalar(255, 0, 0), 2, 8, 0);
 
-    cv::Mat filtering, closing;
-    cv::bilateralFilter(HSV, filtering, 5, 100, 100);
-    cv::morphologyEx(filtering, closing, cv::MORPH_CLOSE, cv::Mat());
+    if (turn_dir == 0) {
+        straight_lane_angle = 0;
+        cv::imshow("RESULT", src);
+        return straight_lane_angle;
+    } else if (turn_dir == 2) {
+        straight_lane_angle = 0;
+        cv::imshow("RESULT", src);
+        return straight_lane_angle;
+    } else if (turn_dir == 3) {
+        straight_lane_angle = -30;
+        cv::imshow("RESULT", src);
+        return straight_lane_angle;
+    } else {
+        cv::Mat ROI = RegionOfInterset(src, rect);
+        cv::Mat HSV = FindColorHsv(ROI);
 
-    cv::Mat canny;
-    cv::Canny(closing, canny, 150, 270);
+        cv::Mat filtering, closing;
+        cv::bilateralFilter(HSV, filtering, 5, 100, 100);
+        cv::morphologyEx(filtering, closing, cv::MORPH_CLOSE, cv::Mat());
 
-    // HOUGH TRANSFORM
-    std::vector<cv::Vec4i> lines;
-    cv::HoughLinesP(canny, lines, rho, theta, threshold,
-                    min_line_length, max_line_gap);
+        cv::Mat canny;
+        cv::Canny(closing, canny, 150, 270);
 
-    cv::Mat line_result = cv::Mat::zeros(src.size(), CV_8UC3);
-    int straight_lane_angle = EdgeLines(src, line_result, lines);
+        // HOUGH TRANSFORM
+        std::vector<cv::Vec4i> lines;
+        cv::HoughLinesP(canny, lines, rho, theta, threshold,
+                        min_line_length, max_line_gap);
 
-    cv::Mat result;
-    cv::addWeighted(line_result, 1, src, 0.6, 0., result);
-    cv::imshow("RESULT", result);
+        cv::Mat line_result = cv::Mat::zeros(src.size(), CV_8UC3);
+        straight_lane_angle = EdgeLines(src, line_result, lines);
 
-    return straight_lane_angle;
+        cv::Mat result;
+        cv::addWeighted(line_result, 1, src, 0.6, 0., result);
+        cv::imshow("RESULT", result);
+
+        return straight_lane_angle;
+    }
 }

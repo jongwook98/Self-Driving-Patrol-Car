@@ -22,8 +22,11 @@ private: // NOLINT
   uint8_t force_straight_flag;
 
   int stop_cnt;
+  int stop_time = 10;
   int left_stay_cnt;
+  int left_stay_time = 35;
   int force_straight_stay_cnt;
+  int force_straight_stay_time = 35;
 
   float steering_angle;
 

@@ -42,8 +42,8 @@ private: // NOLINT
 
 public: // NOLINT
   LaneDetection()
-      : width(800), l_x1(0), l_x2(0), r_x1(0), r_x2(0), line_flag{0, 0},
-        c_x1(400), c_y1(600), c_y2(0), c_x2(0), slope(0.0), r_slope(0),
+      : width(1080), l_x1(0), l_x2(0), r_x1(0), r_x2(0), line_flag{0, 0},
+        c_x1(540), c_y1(600), c_y2(0), c_x2(0), slope(0.0), r_slope(0),
         l_slope(0), diff(0), calculated_angle(0), pre_c_x2(540) {}
   ~LaneDetection() {}
   cv::Mat RegionOfInterset(cv::Mat img, cv::Point *vertices);
@@ -52,7 +52,7 @@ public: // NOLINT
                 std::vector<cv::Vec4i> lines);
   int CalculationAngle(float servo_direct, int line_flag[],
                        const cv::Mat &line_result, int l_x2, int r_x1);
-  int StraightLaneAngle(cv::Mat img);
+  int StraightLaneAngle(cv::Mat img, uint8_t turn_dir);
 };
 
 #endif /* LANE_DETECTION_H */
