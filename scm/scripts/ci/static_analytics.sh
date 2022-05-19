@@ -34,7 +34,7 @@ pwd
 check_static_annalytics
 
 # check in lane detection & mcu control
-cd "${ROOT_DIR}/features/mcu_control"
+cd "${ROOT_DIR}/features"
 pwd
 check_static_annalytics
 
