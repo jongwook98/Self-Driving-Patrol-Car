@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'control_flow'.
  *
- * Model version                  : 1.162
+ * Model version                  : 1.166
  * Simulink Coder version         : 9.3 (R2020a) 18-Nov-2019
- * C/C++ source code generated on : Wed May 11 16:41:14 2022
+ * C/C++ source code generated on : Sat May 21 01:48:12 2022
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -23,8 +23,8 @@
 #define control_flow_IN_NO_ACTIVE_CHILD ((uint8_T)0U)
 #define control_flow_IN_angle_dec      ((uint8_T)1U)
 #define control_flow_IN_direction_dec  ((uint8_T)2U)
-#define control_flow_ang_max           (150.0F)
-#define control_flow_ang_min           (90.0F)
+#define control_flow_ang_max           (165.0F)
+#define control_flow_ang_min           (75.0F)
 #define control_flow_servo_prd_max     (4200.0F)
 #define control_flow_servo_prd_min     (840.0F)
 
@@ -119,11 +119,11 @@ void control_flow_servo_dir(real32_T rtu_angle, B_servo_dir_control_flow_T
     localDW->is_c3_control_flow = control_flow_IN_direction_dec;
   } else {
     /* case IN_direction_dec: */
-    ang_temp = rtu_angle + 120.0F;
-    if (rtu_angle + 120.0F > control_flow_ang_max) {
+    ang_temp = (90.0F - rtu_angle) + 120.0F;
+    if ((90.0F - rtu_angle) + 120.0F > control_flow_ang_max) {
       ang_temp = control_flow_ang_max;
     } else {
-      if (rtu_angle + 120.0F < control_flow_ang_min) {
+      if ((90.0F - rtu_angle) + 120.0F < control_flow_ang_min) {
         ang_temp = control_flow_ang_min;
       }
     }
