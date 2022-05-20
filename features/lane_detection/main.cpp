@@ -1,5 +1,5 @@
 /*
- * Copyright 2022. Park, Sangjae/Bae, Youwon all rights reserved
+ * Copyright 2022. Park, Sangjae/Bae, Youwon/Kim, Jinseong all rights reserved
  *
  *
  */
@@ -15,8 +15,8 @@ int main() {
     TrafficLight light;
     DrivingControl control;
     Lane val;
-    MessageQueue *MQ;
-    MQ = new MessageQueue(val.mq_path[0], val.mq_msg_size[0]);
+    MessageQueue *MQ = new MessageQueue(val.mq_path[0], val.mq_msg_size[0]);
+    SharedMemory *Shm = new SharedMemory("shm", 921600);
     // cv::VideoCapture cap(0);
     cv::VideoCapture cap(cv::CAP_V4L2);
     cap.set(cv::CAP_PROP_FRAME_WIDTH, 1080);
@@ -39,6 +39,8 @@ int main() {
                                              val.driving_status_flag);
         val.data[0] = val.driving_status_flag;
         val.data[1] = val.steering_angle + 90;
+
+        Shm->ShmCopy(Shm->shm_addr, cam.data);
 
         struct message_q lane_mq;
         MQ->BuildMessage(&lane_mq.start, MqMode::OPENCV,

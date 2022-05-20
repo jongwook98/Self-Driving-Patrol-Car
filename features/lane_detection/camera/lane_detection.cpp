@@ -162,9 +162,8 @@ int LaneDetection::StraightLaneAngle(cv::Mat src, uint8_t turn_dir) {
         straight_lane_angle = EdgeLines(src, line_result, lines);
 
         cv::Mat result;
-        cv::addWeighted(line_result, 1, src, 0.6, 0., result);
-        cv::imshow("RESULT", result);
-
+        cv::addWeighted(line_result, 1, src, 0.6, 0., src);
+        cv::imshow("RESULT", src);
         return straight_lane_angle;
     }
 }

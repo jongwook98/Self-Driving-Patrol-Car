@@ -19,9 +19,11 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/main.cpp
   ${CMAKE_SOURCE_DIR}/driving_control/driving_control.cpp
   ${CMAKE_SOURCE_DIR}/common/message_queue.cpp
+  ${CMAKE_SOURCE_DIR}/common/shared_memory.cpp
   ${CMAKE_SOURCE_DIR}/camera/lane_detection.cpp
   ${CMAKE_SOURCE_DIR}/camera/traffic_light.cpp
 )
 
 # set the library informatio for the target
 target_link_libraries(${PROJECT_NAME} PRIVATE rt ${OpenCV_LIBS})
+#target_link_libraries(${PROJECT_NAME} PRIVATE rt)

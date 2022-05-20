@@ -1,4 +1,5 @@
-/* Copyright 2022. Park, Sangjae/Bae, Youwon all rights reserved */
+/* Copyright 2022. Park, Sangjae/Bae, Youwon/Kim, Jinseong all rights reserved
+ */
 
 #ifndef MAIN_H
 #define MAIN_H
@@ -6,6 +7,7 @@
 #include <lane_detection/camera/lane_detection.h>
 #include <lane_detection/camera/traffic_light.h>
 #include <lane_detection/common/message_queue.h>
+#include <lane_detection/common/shared_memory.h>
 #include <lane_detection/driving_control/driving_control.h>
 
 #include <fcntl.h>
@@ -33,4 +35,5 @@ public: // NOLINT
   const char *mq_path[1] = {"/lane"};
   const uint8_t mq_msg_size[1] = {sizeof(uint8_t) * 5};
 };
+
 #endif /* MAIN_H */
