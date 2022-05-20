@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Defective Lane{% endblock %}
+
+{% block page_content %}
+<h3>
+	<body>
+		{% for row in rows %}
+		<style>
+			img{ float: left;}
+			.p2{ clear: both;}
+		</style>
+		<p>
+		<tr>
+			<td>{{row["case_"]}}</td>
+			<img src="{{row["image_path"]}}" height="300" width="400">
+			<td>{{row["information"]}}</td>
+			<td>{{row["datetime"]}}</td>
+		</tr>
+		Defective lane case
+		</p>
+		<p class="p2"></p2>
+		{% endfor %}
+	</body>
+</h3>
+
+{% endblock %}

@@ -1,0 +1,22 @@
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Title</title>
+</head>
+<body>
+<ul>
+	<form method="post" action="/">
+		<button type="submit" value="index" name="button"/> INDEX </button>
+		<input type="submit" value="accident" name="accident"/>
+		<input type="submit" value="defective_lane" name="defective_lane"/>
+		<input type="submit" value="over_speeding" name="over_speeding"/>
+	</form>
+	{% for item in nav.top %}
+	<li class="{{ 'active' if item.is_active else '' }}">
+		<a href="{{ item.url }}">{{ item.label }}</a>
+	</li>
+	{% endfor %}
+
+</ul>
+</body>
+</html>
