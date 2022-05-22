@@ -19,7 +19,6 @@ cv::Mat LaneDetection::FindColorHsv(cv::Mat img) {
     cv::Mat HSV;
     cv::cvtColor(img, HSV, cv::COLOR_BGR2HSV);
 
-    cv::Mat mask_white = cv::Mat::zeros(img.size(), CV_8UC1);
     cv::Scalar lower_white = cv::Scalar(0, 0, 200);
     cv::Scalar upper_white = cv::Scalar(180, 50, 245);
     cv::inRange(HSV, lower_white, upper_white, HSV);

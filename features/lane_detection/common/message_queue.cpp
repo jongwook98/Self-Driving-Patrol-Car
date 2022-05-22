@@ -65,8 +65,7 @@ int MessageQueue::Receive(char *read_buf, const std::size_t len, int sec) {
 }
 
 bool MessageQueue::BuildMessage(uint8_t *root, const MqMode mode,
-                                const uint8_t *data,
-                                const std::size_t root_len,
+                                const uint8_t *data, const std::size_t root_len,
                                 const std::size_t data_len) {
   if (root_len != data_len + 3) {
     std::cout << "Not matched the message components!" << std::endl;
@@ -99,8 +98,8 @@ bool MessageQueue::CheckMessage(MqMode mode, const uint8_t *msg) {
   return true;
 }
 
-mqd_t MessageQueue::GetCurFd(void) const { return fd; }
-const char *MessageQueue::GetMqPath(void) const { return mq_path; }
+mqd_t MessageQueue::GetCurFd(void) const { return this->fd; }
+const char *MessageQueue::GetMqPath(void) const { return this->mq_path; }
 
 int MessageQueue::Open(const char *mq_path, const std::size_t len) {
   struct mq_attr attr = {
@@ -114,7 +113,7 @@ int MessageQueue::Open(const char *mq_path, const std::size_t len) {
   return 0;
 }
 
-int MessageQueue::Close() {
+int MessageQueue::Close(void) {
   if (fd > 0)
     mq_close(fd);
 

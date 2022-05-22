@@ -3,8 +3,6 @@
 #ifndef LANE_DETECTION_H
 #define LANE_DETECTION_H
 
-#include <lane_detection/main.h>
-
 #include <fcntl.h>
 #include <stdlib.h>
 

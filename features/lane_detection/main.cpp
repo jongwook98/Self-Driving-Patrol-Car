@@ -1,71 +1,129 @@
 /*
  * Copyright 2022. Park, Sangjae/Bae, Youwon/Kim, Jinseong all rights reserved
- *
- *
  */
-#include <lane_detection/main.h>
+#include <lane_detection/camera/lane_detection.h>
+#include <lane_detection/camera/traffic_light.h>
+#include <lane_detection/common/message_queue.h>
+#include <lane_detection/common/shared_memory.h>
+#include <lane_detection/driving_control/driving_control.h>
 
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <stdio.h>
+
 #include <cstring>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
+
+#define SHARED_MEMORY_SIZE 921600
+
+struct message {
+  uint8_t start;
+  uint8_t mode;
+  uint8_t status;
+  uint8_t angle;
+  uint8_t stop;
+} __attribute__((packed));
+
+class LaneDetectionMain {
+public: // NOLINT
+  LaneDetectionMain();
+  virtual ~LaneDetectionMain();
+
+  /* getter */
+  cv::VideoCapture GetCap(void) const;
+  std::shared_ptr<TrafficLight> GetTrafficLight(void) const;
+  std::shared_ptr<DrivingControl> GetControl(void) const;
+  std::shared_ptr<MessageQueue> GetMq(void) const;
+  std::shared_ptr<SharedMemory> GetShm(void) const;
+
+private: // NOLINT
+  cv::VideoCapture cap;
+
+  std::shared_ptr<TrafficLight> light;
+  std::shared_ptr<DrivingControl> control;
+  std::shared_ptr<MessageQueue> mq;
+  std::shared_ptr<SharedMemory> shm;
+};
+
+LaneDetectionMain::LaneDetectionMain()
+    : cap(cv::CAP_V4L2), light(std::make_shared<TrafficLight>()),
+      control(std::make_shared<DrivingControl>()),
+      mq(std::make_shared<MessageQueue>("/lane_detection_to_core",
+                                        sizeof(struct message))),
+      shm(std::make_shared<SharedMemory>("shm", SHARED_MEMORY_SIZE)) {
+  cap.set(cv::CAP_PROP_FRAME_WIDTH, 1080);
+  cap.set(cv::CAP_PROP_FRAME_HEIGHT, 600);
+  if (!cap.isOpened()) {
+    std::cout << "Failed to open the camera." << std::endl;
+    exit(-EPERM);
+  }
+}
+
+LaneDetectionMain::~LaneDetectionMain() {
+  light = nullptr;
+  control = nullptr;
+  mq = nullptr;
+  shm = nullptr;
+}
+
+cv::VideoCapture LaneDetectionMain::GetCap(void) const { return this->cap; }
+
+std::shared_ptr<TrafficLight> LaneDetectionMain::GetTrafficLight(void) const {
+  return this->light;
+}
+
+std::shared_ptr<DrivingControl> LaneDetectionMain::GetControl(void) const {
+  return this->control;
+}
+
+std::shared_ptr<MessageQueue> LaneDetectionMain::GetMq(void) const {
+  return this->mq;
+}
+
+std::shared_ptr<SharedMemory> LaneDetectionMain::GetShm(void) const {
+  return this->shm;
+}
 
 int main() {
-    LaneDetection detect;
-    TrafficLight light;
-    DrivingControl control;
-    Lane val;
-    MessageQueue *MQ = new MessageQueue(val.mq_path[0], val.mq_msg_size[0]);
-    SharedMemory *Shm = new SharedMemory("shm", 921600);
-    // cv::VideoCapture cap(0);
-    cv::VideoCapture cap(cv::CAP_V4L2);
-    cap.set(cv::CAP_PROP_FRAME_WIDTH, 1080);
-    cap.set(cv::CAP_PROP_FRAME_HEIGHT, 600);
-    if (!cap.isOpened()) {
-        printf("Can't open the camera");
-        return -1;
-    }
+  LaneDetectionMain ld_main;
 
-    cv::Mat cam;
-    while (1) {
-        cap >> cam;
-        if (cv::waitKey(1) == 27)
-             break;
+  cv::Mat cam;
+  uint8_t send_data[2] = {
+      0,
+  };
+  const std::string light_table[] = {"nothing", "red_light", "green_light",
+                                     "left_light"};
+  struct message lane_msg;
 
-        val.traffic_light = light.FindTrafficLight(cam);
-        val.driving_status_flag = control.DrivingStatusFlag(
-                                                 val.traffic_light);
-        val.steering_angle = control.SteeringAngle(cam,
-                                             val.driving_status_flag);
-        val.data[0] = val.driving_status_flag;
-        val.data[1] = val.steering_angle + 90;
+  while (1) {
+    ld_main.GetCap() >> cam;
+    if (cv::waitKey(1) == 27)
+      break;
 
-        Shm->ShmCopy(Shm->shm_addr, cam.data);
+    int traffic_light = ld_main.GetTrafficLight()->FindTrafficLight(cam);
+    uint8_t driving_status = ld_main.GetControl()->
+                             DrivingStatusFlag(traffic_light);
+    uint8_t steering_angle = ld_main.GetControl()->
+                             SteeringAngle(cam, driving_status);
+    send_data[0] = driving_status;
+    send_data[1] = steering_angle + 90;
 
-        struct message_q lane_mq;
-        MQ->BuildMessage(&lane_mq.start, MqMode::OPENCV,
-                         val.data,
-                         sizeof(lane_mq),
-                         sizeof(val.data));
-        char send_msg[5]={static_cast<char>(lane_mq.start),
-                          static_cast<char>(lane_mq.mode),
-                          static_cast<char>(lane_mq.status_flag),
-                          static_cast<char>(lane_mq.angle),
-                          static_cast<char>(lane_mq.stop)};
-        MQ->Send(send_msg, val.mq_msg_size[0]);
+    ld_main.GetShm()->CopyToMem(cam.data, SHARED_MEMORY_SIZE);
 
-        if (val.traffic_light == 1) {
-            printf("T_light : red_light  | ");
-        } else if (val.traffic_light == 2) {
-            printf("T_light : green_light| ");
-        } else if (val.traffic_light == 3) {
-            printf("T_light : left_light | ");
-        } else {
-            printf("T_light : nothing    | ");
-        }
-        printf("status_flag : %d | ", val.driving_status_flag);
-        printf("steering_angle : %d\n", val.steering_angle);
-    }
+    memset(&lane_msg, 0x0, sizeof(struct message));
+    ld_main.GetMq()->BuildMessage(reinterpret_cast<uint8_t *>(&lane_msg),
+                                  (MqMode::LANE_RECOG | MqMode::OPENCV),
+                                  send_data, sizeof(struct message),
+                                  sizeof(send_data));
+    ld_main.GetMq()->Send(reinterpret_cast<const char *>(&lane_msg),
+                          sizeof(struct message));
 
-    return 0;
+    std::cout << "T_light: " << light_table[traffic_light] << " | ";
+    std::cout << "status_flag: " << driving_status << " | ";
+    std::cout << "sterring_angle: " << steering_angle << std::endl;
+  }
+
+  return 0;
 }

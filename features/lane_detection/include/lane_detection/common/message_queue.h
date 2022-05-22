@@ -44,7 +44,7 @@ public: // NOLINT
 
 private: // NOLINT
   int Open(const char *mq_path, const std::size_t len);
-  int Close();
+  int Close(void);
 
   mqd_t fd;
   std::size_t len;

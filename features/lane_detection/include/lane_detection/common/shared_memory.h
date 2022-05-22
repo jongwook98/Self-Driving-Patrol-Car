@@ -1,25 +1,26 @@
 /* Copyright 2022, Kim, Jinseong all rights reserved */
 
 #ifndef SHARED_MEMORY_H
-#define SHARED_MEMOTY_H
+#define SHARED_MEMORY_H
 
 #include <iostream>
 
 class SharedMemory {
 public: // NOLINT
-  SharedMemory(const char *shm_path, const std::size_t mem_size);
+  SharedMemory(const char *shm_path, const off_t mem_size);
   virtual ~SharedMemory();
 
-  void ShmCopy(void *shm_path, const void *input_path);
-
-  void *shm_addr;
+  int CopyToMem(const void *write_buf, off_t offset);
+  int CopyFromMem(void *read_buf, off_t offset);
 
 private: // NOLINT
-  int Open(const char *shm_path, const std::size_t mem_size);
-  int Close();
+  int Open(const char *shm_path, const off_t mem_size);
+  int Close(void);
 
   int fd;
-  std::size_t mem_size;
+  off_t req_size;
+
+  void *virt_addr;
   const char *shm_path;
 };
 
