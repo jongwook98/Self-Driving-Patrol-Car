@@ -25,7 +25,7 @@ void timer9_motor_ISR(void)
     // cnt = TIM8->CNT;			// encoder count input
     // TIM8->CNT = 0;			// encoder count clear
 
-    // control_flow_latte.input_angle_r64 = (real32_T)0;
+    control_flow.inputs->Input1.input_angle_r32 = (real32_T)(st_ptcl.angle - 6);
     // control_flow_latte.input_velo_r64 = (real32_T)1000;
 
     control_flow.inputs->Input2.encoder_u16 = (uint16_T)TIM8->CNT;
