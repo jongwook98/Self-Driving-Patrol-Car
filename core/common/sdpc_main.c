@@ -1,6 +1,4 @@
-#include <sdpc/common/sdpc_camera.h>
 #include <sdpc/common/sdpc_common.h>
-#include <sdpc/common/sdpc_lidar.h>
 #include <sdpc/common/sdpc_main.h>
 #include <sdpc/common/sdpc_msgque.h>
 #include <sdpc/common/sdpc_uart.h>
@@ -22,8 +20,6 @@ int sdpc_main_init(void)
     /* Only Root! */
     FORMULA_GUARD(check_permission(NULL) < 0, -EPERM, "");
 
-    FORMULA_GUARD(sdpc_camera_init() < 0, -EPERM, "");
-    FORMULA_GUARD(sdpc_lidar_init() < 0, -EPERM, "");
     FORMULA_GUARD(sdpc_uart_init() < 0, -EPERM, "");
     FORMULA_GUARD(sdpc_message_queue_init() < 0, -EPERM, "");
 
@@ -40,8 +36,6 @@ int sdpc_main_exit(void)
 
     sdpc_message_queue_exit();
     sdpc_uart_exit();
-    sdpc_lidar_exit();
-    sdpc_camera_exit();
 
     return 0;
 }

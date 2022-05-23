@@ -25,7 +25,7 @@ function build_for_clang()
 	# build
 	echo_func "[clang] Build Start!" 0
 	cmake ../
-	make 2>&1 | tee build.log
+	make -j "${CPU_NUM}" 2>&1 | tee build.log
 
 	ret=$(grep -e " warning:" -e " error:" < build.log)
 	if [[ ${ret} != "" ]]
