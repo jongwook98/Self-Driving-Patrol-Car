@@ -10,13 +10,23 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
+#include <csignal>
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 
-#define SHARED_MEMORY_SIZE 921600
+#define SHARED_MEMORY_SIZE 1769472
+
+static int g_escape_flag = 1;
+
+static void sig_ctrl_c(int signo) {
+  static_cast<void>(signo);
+
+  std::perror("Input Ctrl+C");
+  g_escape_flag = 0;
+}
 
 struct message {
   uint8_t start;
@@ -87,6 +97,13 @@ std::shared_ptr<SharedMemory> LaneDetectionMain::GetShm(void) const {
 }
 
 int main() {
+  struct sigaction sig_act;
+  sig_act.sa_handler = sig_ctrl_c;
+  sig_act.sa_flags = 0;
+
+  sigemptyset(&sig_act.sa_mask);
+  sigaction(SIGINT, &sig_act, NULL);
+
   LaneDetectionMain ld_main;
 
   cv::Mat cam;
@@ -97,7 +114,7 @@ int main() {
                                      "left_light"};
   struct message lane_msg;
 
-  while (1) {
+  while (g_escape_flag) {
     ld_main.GetCap() >> cam;
     if (cv::waitKey(1) == 27)
       break;
@@ -125,5 +142,6 @@ int main() {
     std::cout << "sterring_angle: " << steering_angle << std::endl;
   }
 
+  std::cout << "LaneDetection Done!" << std::endl;
   return 0;
 }
