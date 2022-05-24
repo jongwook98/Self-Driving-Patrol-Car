@@ -14,7 +14,7 @@ pwd
 py_files=$(find . \
 	-type f \
 	-not -path '*/.git/*' -a \
-	-not -path "${THIRD_PATH_PATH}" -a \
+	-not -path "${THIRD_PARTY_PATH}" -a \
 	-not -path "${OUT_PATH}" -a \
 	-not -path "${MCU_CORE_PATH}" -a \
 	-not -path "${MCU_DRIVER_PATH}" -a \

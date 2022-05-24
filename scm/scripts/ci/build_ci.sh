@@ -6,11 +6,11 @@ ROOT_DIR=$(git rev-parse --show-toplevel)
 source "${ROOT_DIR}/scm/scripts/common/echo.sh"
 
 CORE_DIR="core"
-LANE_DIR="features/lane_detection"
+#LANE_DIR="features/lane_detection"
 MCU_DIR="features/mcu_control"
 
 CORE_TARGET="sdpc"
-LANE_TARGET="lane_detection"
+#LANE_TARGET="lane_detection"
 MCU_TARGET="mcu_control.elf"
 
 function build()

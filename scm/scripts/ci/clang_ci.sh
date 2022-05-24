@@ -14,7 +14,7 @@ pwd
 echo_func "[scm] clang-format checking" 0
 find . \
 	-type f \
-	-not -path "${THIRD_PATH_PATH}" -a \
+	-not -path "${THIRD_PARTY_PATH}" -a \
 	-not -path "${OUT_PATH}" -a \
 	-not -path "${MCU_CORE_PATH}" -a \
 	-not -path "${MCU_DRIVER_PATH}" -a \

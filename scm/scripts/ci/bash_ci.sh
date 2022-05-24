@@ -11,8 +11,14 @@ cd "${ROOT_DIR}"
 pwd
 
 BASH_LISTS=($(find . \
-	-not -path '*/third_party/*' \
-	-not -path './gentags.sh' \
+	-not -path './.git/*' -a \
+	-not -path './gentags.sh' -a \
+	-not -path "${THIRD_PARTY_PATH}" -a \
+	-not -path "${OUT_PATH}" -a \
+	-not -path "${IMAGE_PATH}" -a \
+	-not -path "${MCU_CORE_PATH}" -a \
+	-not -path "${MCU_DRIVER_PATH}" -a \
+	-not -path "${MCU_MATALB_PATH}" \
 	-name "*.sh"
 ))
 

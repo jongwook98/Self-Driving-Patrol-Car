@@ -26,7 +26,7 @@ echo_func "[scm] Remove the trailing lines" 0
 find . \
 	-type f \
 	-not -path './.git/*' -a \
-	-not -path "${THIRD_PATH_PATH}" -a \
+	-not -path "${THIRD_PARTY_PATH}" -a \
 	-not -path "${OUT_PATH}" -a \
 	-not -path "${IMAGE_PATH}" -a \
 	-not -path "${MCU_CORE_PATH}" -a \
@@ -39,7 +39,7 @@ echo_func "[scm] Trim whitespace" 0
 find . \
 	-type f \
 	-not -path './.git/*' -a \
-	-not -path "${THIRD_PATH_PATH}" -a \
+	-not -path "${THIRD_PARTY_PATH}" -a \
 	-not -path "${OUT_PATH}" -a \
 	-not -path "${IMAGE_PATH}" -a \
 	-not -path "${MCU_CORE_PATH}" -a \

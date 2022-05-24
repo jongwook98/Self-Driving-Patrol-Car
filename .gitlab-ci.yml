@@ -20,6 +20,15 @@ General Test:
         - echo "This is the general test stage."
         - scm/scripts/ci/general_ci.sh
 
+Bash Test:
+    extends: .caching
+    stage: lang_check
+    tags:
+        - pycounter
+    script:
+        - echo "This is the Bash Script CI check stage."
+        - scm/scripts/ci/bash_ci.sh
+
 CMake Test:
     extends: .caching
     stage: lang_check
