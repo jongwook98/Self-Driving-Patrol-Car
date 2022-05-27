@@ -106,11 +106,6 @@ static void *_main_thread(void *arg)
         send_signal(deep_sync);
 
         sdpc_message_queue_receive(VEHICLE_MODE, read_buf, sizeof(read_buf));
-#if 1
-        for (int i = 0; i < 4; i++)
-            fprintf(stderr, "0x%02x ", read_buf[i]);
-        fprintf(stderr, "\n");
-#endif
         memset(read_buf, 0x0, sizeof(read_buf));
     }
 
