@@ -34,9 +34,16 @@ $ bash scm/scripts/common/install_package.sh
 * After execute the build.sh, you can check the results in the ***out*** folder
 
 
-## How to flash the images and execute the project on the develop board
+## How to flash the images for the myCortex-STM32F4 board
 
-* TODO
+* Please refer to the README.md file in the features/mcu_control directory
+
+
+## How to execute the project on the develop board
+
+```bash
+$ sudo -E ./run.sh
+```
 
 
 ## Introduce the directories
