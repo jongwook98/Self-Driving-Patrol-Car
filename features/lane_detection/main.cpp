@@ -72,6 +72,9 @@ LaneDetectionMain::LaneDetectionMain()
 }
 
 LaneDetectionMain::~LaneDetectionMain() {
+  cap.release();
+  cv::destroyAllWindows();
+
   light = nullptr;
   control = nullptr;
   mq = nullptr;
@@ -120,10 +123,10 @@ int main() {
       break;
 
     int traffic_light = ld_main.GetTrafficLight()->FindTrafficLight(cam);
-    uint8_t driving_status = ld_main.GetControl()->
-                             DrivingStatusFlag(traffic_light);
-    uint8_t steering_angle = ld_main.GetControl()->
-                             SteeringAngle(cam, driving_status);
+    uint8_t driving_status =
+        ld_main.GetControl()->DrivingStatusFlag(traffic_light);
+    uint8_t steering_angle =
+        ld_main.GetControl()->SteeringAngle(cam, driving_status);
     send_data[0] = driving_status;
     send_data[1] = steering_angle + 90;
 
@@ -142,6 +145,8 @@ int main() {
     std::cout << "sterring_angle: " << steering_angle << std::endl;
   }
 
+  cam.release();
   std::cout << "LaneDetection Done!" << std::endl;
+
   return 0;
 }
