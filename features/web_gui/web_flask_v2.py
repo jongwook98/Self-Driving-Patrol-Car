@@ -4,6 +4,7 @@ This is python flask web page for patrol project
 '''
 import mmap
 import sqlite3 as sql
+import time
 
 import cv2
 import numpy as np
@@ -16,7 +17,7 @@ import posix_ipc as pi
 SHMEM = pi.SharedMemory('shm',
                         flags=pi.O_CREAT | pi.O_RDWR,
                         mode=0o666,
-                        size=921600)
+                        size=2764800)
 
 APP = Flask(__name__)
 APP.config['SECRET_KEY'] = '1234125'
@@ -36,13 +37,14 @@ def gen_frames():
     get frames form cv2.VideoCapture
     '''
     while True:
-        shared_buffer = mmap.mmap(SHMEM.fd, 921600)
+        shared_buffer = mmap.mmap(SHMEM.fd, 2764800)
         byte_buffer = shared_buffer.read()
 
         np_buffer = np.frombuffer(byte_buffer, dtype=np.uint8)
-        np_buffer_3c = np.reshape(np_buffer, (480, 640, 3))
+        np_buffer_3c = np.reshape(np_buffer, (720, 1280, 3))
 
         ret, encode_buffer = cv2.imencode('.jpg', np_buffer_3c)
+        time.sleep(0.2)
         if ret is False:
             break
 

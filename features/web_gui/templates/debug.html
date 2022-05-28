@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Patrol Car Project!{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+	<body>
+		<div style="text-align : center;">
+			<img src="{{ url_for('stream') }}" width="100%">
+		</div>
+
+		<h1 style="font-size:400%">This is debugging page</h1>
+		<ol>
+			<h4 style="font-size:150%">
+				<form method="post" action="/debug/">
+					<li>
+						<input type = "submit" value = "on" name="toggle"/>
+					</li>
+				</form>
+			</h4>
+		</ol>
+		{# <img src="{{url_for('static', filename='/img/walk.gif')}}"> #}
+	</body>
+</div>
+{% endblock %}

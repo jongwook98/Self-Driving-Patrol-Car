@@ -5,21 +5,34 @@
 {% block page_content %}
 <div class="page-header">
 	<body>
+		<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}" />
 
-		<img src="{{ url_for('stream') }}" width="30%">
-		<h1 style="font-size:400%">Hello, visitor!</h1>
-		<h3 style="font-size:200%">This is the web page for the <b>patrol car project.</b></h4>
+		<h1 class="welcome">Hello, visitor!</h1>
+		<div class="intro">
+			<img src = "{{url_for('static', filename='/img/PatrolCar.png')}}">
+			<h3 class="top_word"><br>This is the <span class="red">web page</span></h3>
+			<h3 class="middle_word">for the</h3>
+			<h3 class="bottom_word"><span class="red">patrol car</span> project.</h3>
+		</div>
 		<br>
-		<h3 style="font-size:200%">Patrol vehicle robots fuse lidar sensor and camera sensors to perform autonomous driving, and have the following functions.</h4>
-		<br>
+		<div class="null"></div>
+		<h3>Patrol vehicle robots fuse lidar sensor and camera sensors to perform autonomous driving, and have the following functions.</h3>
 		<ol>
-			<h4 style="font-size:150%">
+			<h4>
 			<li>Identify and photograph speeding vehicles.</li>
+			<br>
 			<li>Recognize the accident site and take photos and action.</li>
+			<br>
 			<li>Recognize defective lane and receive loaction information through GPS</li>
 			</h4>
 		</ol>
-		{# <img src="{{url_for('static', filename='/img/walk.gif')}}"> #}
+		<br>
+		<div class="processing">
+			<h4>
+			The image below is an image processing of the patrol car
+			<img src="{{ url_for('stream') }}" width="100%">
+			</h4>
+		</div>
 	</body>
 </div>
 {% endblock %}
