@@ -6,25 +6,114 @@
 #include <stdio.h>
 #include <string.h>
 
-#define BUF_SIZE 128
-static uint8_t buf;
-static uint8_t rxBuffer[BUF_SIZE];
-static uint8_t txBuffer[BUF_SIZE];
-
-#define LAT_BUF_SIZE 5
-static uint8_t buf_latte[LAT_BUF_SIZE];
-static uint8_t rx_latte[BUF_SIZE];
-// static uint8_t tx_latte[BUF_SIZE];
+static inline void _sum_rx_buf(uint8_t *buffer, uint8_t *_buf);
+static inline void _spdc_uart_protocol(uint8_t *buffer, uint8_t *_buf);
+static inline void _test_matlab_model(const uint8_t command,
+                                      ExtU_control_flow_T *input);
+static inline void _transmit_string(volatile UART_HandleTypeDef *USARTx,
+                                    uint8_t *buffer, char *Str);
 
 st_protocol st_ptcl;
+st_buffer st_buf;
 
 uint8_t txERR[] = "Something's wrong\r\n";
-uint32_t tim_cnt = 0;
-
 char CR[] = {'\r'};
 
-void USARTx_TxString(volatile UART_HandleTypeDef *USARTx, uint8_t *buffer,
-                     char *Str)
+void receive_uart_start_it(void)
+{
+    HAL_UART_Receive_IT(&huart1, &st_buf.u1_buf, 1);
+    HAL_UART_Receive_IT(&huart2, st_buf.lp_buf, LAT_BUF_SIZE);
+}
+
+void TxPrintf(char *Form, ...)
+{
+    TX_LED_ON;
+
+    static char Buff[BUF_SIZE];
+    va_list ArgPtr;
+    va_start(ArgPtr, Form);
+    vsprintf(Buff, Form, ArgPtr);
+    va_end(ArgPtr);
+    _transmit_string(&huart1, st_buf.usart1.tx, Buff);
+
+    TX_LED_OFF;
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    RX_LED_ON;
+
+    if (huart->Instance == USART1)
+    {
+        _sum_rx_buf(st_buf.usart1.rx, &st_buf.u1_buf);
+        _test_matlab_model((const uint8_t)st_buf.u1_buf, control_flow.inputs);
+        HAL_UART_Receive_IT(&huart1, &st_buf.u1_buf, 1);
+    }
+
+    if (huart->Instance == USART2)
+    {
+        _spdc_uart_protocol(st_buf.latte_panda.rx, st_buf.lp_buf);
+        HAL_UART_Receive_IT(&huart2, st_buf.latte_panda.rx, LAT_BUF_SIZE);
+    }
+
+    RX_LED_OFF;
+}
+
+static inline void _sum_rx_buf(uint8_t *buffer, uint8_t *_buf)
+{
+    if (*_buf == '\r' || *_buf == '\n')
+        memset((void *)buffer, 0x00, sizeof(uint8_t) * BUF_SIZE);
+    else
+        strcat((char *)buffer, (char *)_buf);
+}
+
+static inline void _spdc_uart_protocol(uint8_t *buffer, uint8_t *_buf)
+{
+    if (*_buf == 0x55 && *(_buf + 4) == 0x77)
+    {
+        st_ptcl = *(st_protocol *)_buf;
+
+        control_flow.inputs->Input1.input_angle_r32 = (real_T)st_ptcl.angle;
+        control_flow.inputs = (ExtU_control_flow_T *)&st_ptcl.flag;
+    }
+
+    memset((void *)_buf, 0x00, sizeof(uint8_t) * LAT_BUF_SIZE);
+}
+
+static inline void _test_matlab_model(const uint8_t command,
+                                      ExtU_control_flow_T *input)
+{
+    FROM_LATTE *input_val = &(input->Input1);
+    FROM_LATTE_FLAG *input_flag = &(input->flag);
+
+    switch (command)
+    {
+    case 'q':
+        input_val->input_velo_r32 += 50;
+        break;
+    case 'a':
+        input_val->input_velo_r32 -= 50;
+        break;
+    case 'w':
+        input_val->input_angle_r32 += (float)10.0;
+        break;
+    case 's':
+        input_val->input_angle_r32 -= (float)10.0;
+        break;
+    case 'e':
+        if (input_flag->turn == 0)
+            input_flag->turn = 1;
+        else
+            input_flag->steer = !input_flag->steer;
+        break;
+    case 'r':
+        input_flag->move = !input_flag->move;
+        break;
+    }
+}
+
+static inline void _transmit_string(volatile UART_HandleTypeDef *USARTx,
+                                    uint8_t *buffer, char *Str)
 {
     uint16_t strCnt = 0;
     while (*Str)
@@ -42,109 +131,4 @@ void USARTx_TxString(volatile UART_HandleTypeDef *USARTx, uint8_t *buffer,
                       100);
 
     memset((void *)buffer, 0x00, sizeof(uint8_t) * BUF_SIZE);
-}
-
-void TxPrintf(char *Form, ...)
-{
-    TX_LED_ON;
-
-    // tim_cnt = htim1.Instance->CNT;
-    static char Buff[BUF_SIZE];
-    va_list ArgPtr;
-    va_start(ArgPtr, Form);
-    vsprintf(Buff, Form, ArgPtr);
-    va_end(ArgPtr);
-    USARTx_TxString(&huart1, txBuffer, Buff);
-    // tim_cnt -= htim1.Instance->CNT;
-
-    TX_LED_OFF;
-}
-
-void RxBuffer(uint8_t *buffer, uint8_t *_buf)
-{
-    if (*_buf == '\r' || *_buf == '\n')
-        memset((void *)buffer, 0x00, sizeof(uint8_t) * BUF_SIZE);
-    else
-        strcat((char *)buffer, (char *)_buf);
-}
-
-void linux_protocol(uint8_t *buffer, uint8_t *_buf)
-{
-    if (*_buf == 0x55 && *(_buf + 4) == 0x77)
-    {
-        st_ptcl.start = *_buf;
-        st_ptcl.mode = *(_buf + 1);
-        st_ptcl.flag.all = *(_buf + 2);
-        st_ptcl.angle = *(_buf + 3);
-        st_ptcl.stop = *(_buf + 4);
-
-        control_flow.inputs->Input1.input_angle_r32 = (real_T)st_ptcl.angle;
-        control_flow.inputs->flag.steer = st_ptcl.flag.bit.blinker;
-        control_flow.inputs->flag.turn = st_ptcl.flag.bit.turn_onoff;
-        control_flow.inputs->flag.move = st_ptcl.flag.bit.move_onoff;
-    }
-
-    memset((void *)_buf, 0x00, sizeof(uint8_t) * LAT_BUF_SIZE);
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-    RX_LED_ON;
-
-    if (huart->Instance == USART1)
-    {
-        RxBuffer(rxBuffer, &buf);
-        // linux_protocol(rxBuffer, &buf);
-
-        switch (buf)
-        {
-        case 'q':
-            control_flow.inputs->Input1.input_velo_r32 += 100;
-            // control_flow_latte.input_angle_r64 += (float)10.0;
-            break;
-        case 'a':
-            control_flow.inputs->Input1.input_velo_r32 -= 100;
-            // control_flow_latte.input_angle_r64 -= (float)10.0;
-            break;
-        case 'w':
-            control_flow.inputs->Input1.input_angle_r32 += (float)10.0;
-            break;
-        case 's':
-            control_flow.inputs->Input1.input_angle_r32 -= (float)10.0;
-            break;
-        case 'e':
-            if (control_flow.inputs->flag.turn == 0)
-                control_flow.inputs->flag.turn = 1;
-            else
-            {
-                if (control_flow.inputs->flag.steer == 1)
-                    control_flow.inputs->flag.steer = 0;
-                else
-                    control_flow.inputs->flag.steer = 1;
-            }
-            break;
-        case 'r':
-            if (control_flow.inputs->flag.move == 1)
-                control_flow.inputs->flag.move = 0;
-            else
-                control_flow.inputs->flag.move++;
-            break;
-        }
-
-        HAL_UART_Receive_IT(&huart1, &buf, 1);
-    }
-
-    if (huart->Instance == USART2)
-    {
-        linux_protocol(rx_latte, buf_latte);
-        HAL_UART_Receive_IT(&huart2, buf_latte, LAT_BUF_SIZE);
-    }
-
-    RX_LED_OFF;
-}
-
-void receive_uart_start_it(void)
-{
-    HAL_UART_Receive_IT(&huart1, &buf, 1);
-    HAL_UART_Receive_IT(&huart2, buf_latte, LAT_BUF_SIZE);
 }
