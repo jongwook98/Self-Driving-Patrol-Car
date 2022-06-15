@@ -20,6 +20,14 @@
 
 ## Prerequisite
 
+* Download source from the Gitlab
+
+```bash
+$ git clone https://gitlab.com/MAZE-dankook/self-driving-patrol-car.git
+$ cd self-driving-patrol-car
+$ git submodule update --init --recursive
+```
+
 * Before the build the project, you have to install the packages below
 
 ```bash

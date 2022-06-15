@@ -15,6 +15,7 @@ echo_func "[scm] cpplint checking" 0
 
 FILES=$(find . \
 	-type f \
+	-not -path "${THIRD_PARTY_PATH}" -a \
 	-not -path "${OUT_PATH}" -a \
 	-not -path "*/core/*" -a \
 	-not -path "*/user_code/*" -a \

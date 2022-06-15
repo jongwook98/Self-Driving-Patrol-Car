@@ -13,7 +13,7 @@ pwd
 
 # CI using the cmakelint
 find . \
-	-not -path '*/third_party/*' \
+	-not -path "${THIRD_PARTY_PATH}" \
 	-name "CMakeLists.txt" \
 	-exec cmakelint --spaces=2 --linelength=80 {} \; 2>&1 | tee ${LINT_LOG}
 
