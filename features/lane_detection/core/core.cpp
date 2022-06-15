@@ -1,5 +1,6 @@
 /* Copyright 2022. Park, Sangjae/Bae, Youwon all rights reserved */
 
+#include <lane_detection/common/common.h>
 #include <lane_detection/core/core.h>
 
 #include <unistd.h>
@@ -27,7 +28,7 @@ Core::~Core() {
 }
 
 void Core::Run(void) {
-  std::cout << "[core] start!" << std::endl;
+  DEBUG_MSG("[core] Start!");
   cam->Start(nullptr);
   lane_detect->Start(nullptr);
   traffic_light->Start(nullptr);
@@ -39,7 +40,7 @@ void Core::Run(void) {
   traffic_light->Stop();
   lane_detect->Stop();
   cam->Stop();
-  std::cout << "[core] end" << std::endl;
+  DEBUG_MSG("[core] end");
 }
 
 void Core::SigIntHandler(int signo) {

@@ -16,7 +16,21 @@ $ ./build.sh
 
 ## How to execute
 
-```bash
-$ cd out
-$ ./lane_detection
-```
+  * Execute the normal mode,
+
+  ```bash
+  $ cd out
+  $ ./lane_detection
+  ```
+
+  * When checking the debug message,
+
+  ```bash
+  $ ./lane_detection -l 0
+  ```
+
+  * Help
+
+  ```bash
+  $ ./lane_detection --help
+  ```

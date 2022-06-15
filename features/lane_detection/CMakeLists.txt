@@ -7,8 +7,9 @@ project(lane_detection VERSION 1.0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# add the package of the OpenCV
+# add the packages
 find_package(OpenCV REQUIRED)
+find_package(glog 0.6.0 REQUIRED PATHS "${CMAKE_SOURCE_DIR}/out/glog")
 
 # add the include directory
 include_directories(${CMAKE_SOURCE_DIR}/include)
@@ -27,4 +28,6 @@ add_executable(
 )
 
 # set the library informatio for the target
-target_link_libraries(${PROJECT_NAME} PRIVATE pthread rt ${OpenCV_LIBS})
+target_link_libraries(
+  ${PROJECT_NAME} PRIVATE pthread rt ${OpenCV_LIBS} glog::glog
+)

@@ -34,6 +34,10 @@ function check_output()
 	fi
 }
 
+cd "${ROOT_DIR}"
+git config --global http.sslVerify false
+git submodule update --init --recursive
+
 # for core
 build ${CORE_DIR} ${CORE_TARGET}
 check_output "lib${CORE_TARGET}_shared.so"

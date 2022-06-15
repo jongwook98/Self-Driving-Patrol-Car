@@ -1,5 +1,6 @@
 /* Copyright 2022, Kim, Jinseong all rights reserved */
 
+#include <lane_detection/common/common.h>
 #include <lane_detection/common/shared_memory.h>
 
 #include <fcntl.h>
@@ -14,8 +15,7 @@ static inline int _memory_copy(void *dest, const void *src, const off_t offset);
 SharedMemory::SharedMemory(const char *shm_path, const off_t mem_size)
     : fd(-EPERM), req_size(0), virt_addr(nullptr), shm_path(shm_path) {
   int ret = Open(shm_path, mem_size);
-  if (ret < 0)
-    exit(-EPERM);
+  EXIT_GUARD(ret < 0, "[SM] in Constructor");
 }
 
 SharedMemory::~SharedMemory() { Close(); }
@@ -30,23 +30,16 @@ int SharedMemory::CopyFromMem(void *read_buf, off_t offset) {
 
 int SharedMemory::Open(const char *shm_path, const off_t mem_size) {
   fd = shm_open(shm_path, O_RDWR | O_CREAT | O_EXCL, 0666);
-  if (fd == -EPERM) {
-    std::cout << "Failed to open the shared memory." << std::endl;
-    return -EPERM;
-  }
+  FORMULA_GUARD(fd == -EPERM, -EPERM, "Failed to open the shared memory.");
 
   req_size = _align_offset(mem_size);
   int ret = ftruncate(fd, req_size);
-  if (ret == -EPERM) {
-    std::cout << "Failed to truncate the file." << std::endl;
-    return -EPERM;
-  }
+  FORMULA_GUARD_WITH_EXIT_FUNC(ret == -EPERM, -EPERM, Close(),
+                               "Failed to truncate the file.");
 
   virt_addr = mmap(NULL, req_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-  if (virt_addr == MAP_FAILED) {
-    std::cout << "Failed to mapping the memory." << std::endl;
-    return -EPERM;
-  }
+  FORMULA_GUARD_WITH_EXIT_FUNC(virt_addr == MAP_FAILED, -EPERM, Close(),
+                               "Failed to mapping the memory.");
 
   return 0;
 }
@@ -76,10 +69,7 @@ static inline off_t _align_offset(const off_t mem_size) {
 
 static inline int _memory_copy(void *dest, const void *src,
                                const off_t offset) {
-  if (src == nullptr) {
-    std::cout << "Invalid pointer." << std::endl;
-    return -EPERM;
-  }
+  FORMULA_GUARD(src == nullptr, -EPERM, ERR_INVALID_PTR);
 
   std::size_t n = static_cast<std::size_t>(offset);
   memmove(dest, src, n);
