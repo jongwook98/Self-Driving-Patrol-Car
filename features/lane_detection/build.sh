@@ -7,6 +7,9 @@ OUT_DIR="out"
 CPU_NUM=$(grep -c processor /proc/cpuinfo)
 LOG="build.log"
 
+GOOGLE_LOG="glog"
+MQTT="mosquitto"
+
 function check_error()
 {
 	ret=$(grep -e " warning:" -e " error:" < ${LOG})
@@ -20,17 +23,17 @@ function check_error()
 	rm -rf ${LOG}
 }
 
-function build_for_glog()
+function build_for_third_party_app()
 {
 	cmake \
-		-S "${ROOT_DIR}/third_party/glog" \
-		-B "${OUT_DIR}/glog" \
+		-S "${ROOT_DIR}/third_party/${1}" \
+		-B "${OUT_DIR}/${1}" \
 		-G "Unix Makefiles"
 
-	cd "${OUT_DIR}/glog" || exit 1
+	cd "${OUT_DIR}/${1}" || exit 1
 
 	# build
-	echo_func "[features/lane_detection] Third Party App Build  Start!" 0
+	echo_func "[features/lane_detection] Third Party App ${1} Build Start!" 0
 	make -j "${CPU_NUM}" 2>&1 | tee ${LOG}
 	check_error
 
@@ -53,7 +56,9 @@ function build_for_lane_detection()
 rm -rf ${OUT_DIR}
 mkdir -p ${OUT_DIR}
 
-build_for_glog
+build_for_third_party_app ${GOOGLE_LOG}
+build_for_third_party_app ${MQTT}
+
 build_for_lane_detection
 
 echo_func "[features/lane_detection] Build Done!" 0

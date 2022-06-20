@@ -3,6 +3,7 @@
 #ifndef THREAD_H
 #define THREAD_H
 
+#include <atomic>
 #include <memory>
 #include <thread>
 
@@ -17,7 +18,7 @@ public: // NOLINT
   virtual void *Run(void *arg) = 0;
 
 protected: // NOLINT
-  bool status;
+  std::atomic<bool> status;
 
 private: // NOLINT
   std::thread th;

@@ -43,7 +43,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
 static int do_arguments(int argc, char *argv[]) {
   const struct argp_option options[] = {
-      {"loglevel", 'l', "LEVEL", 0, "Set log-level (0:max to 3:min)"},
+      {"loglevel", 'l', "LEVEL", 0, "Set log-level (0:min to 3:max)"},
       {NULL},
   };
   const char args_doc[] = "";

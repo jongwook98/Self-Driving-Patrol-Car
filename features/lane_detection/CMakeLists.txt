@@ -8,11 +8,26 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # add the packages
+find_package(Git)
 find_package(OpenCV REQUIRED)
 find_package(glog 0.6.0 REQUIRED PATHS "${CMAKE_SOURCE_DIR}/out/glog")
 
 # add the include directory
 include_directories(${CMAKE_SOURCE_DIR}/include)
+
+# for mosquitto
+if(Git_FOUND)
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" rev-parse --show-toplevel
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    OUTPUT_VARIABLE ROOT_DIR
+    ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+else()
+  set(ROOT_DIR "../..")
+endif()
+include_directories(${ROOT_DIR}/third_party/mosquitto/include)
+link_directories(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/out/mosquitto/lib")
 
 # make exe file
 add_executable(
@@ -29,5 +44,5 @@ add_executable(
 
 # set the library informatio for the target
 target_link_libraries(
-  ${PROJECT_NAME} PRIVATE pthread rt ${OpenCV_LIBS} glog::glog
+  ${PROJECT_NAME} PRIVATE pthread rt ${OpenCV_LIBS} glog::glog mosquitto
 )
