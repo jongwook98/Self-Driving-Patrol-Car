@@ -13,6 +13,8 @@
 #define ERR_INVALID_PARAMS "Invalid Parameters."
 #define ERR_MEMORY_SHORTAGE "Failed to allocate the memory."
 
+#define MAX_BUF 128
+
 #define unlikely(x) __builtin_expect(!!(x), 0)
 
 #define FORMULA_GUARD(formula, ret, msg, ...)                                  \
@@ -43,6 +45,10 @@
 
 template <typename... Args> static inline void DEBUG_MSG(Args &&... args) {
   (LOG(INFO) << ... << args);
+}
+
+template <typename... Args> static inline void WARNING_MSG(Args &&... args) {
+  (LOG(WARNING) << ... << args);
 }
 
 template <typename... Args> static inline void ERR_MSG(Args &&... args) {

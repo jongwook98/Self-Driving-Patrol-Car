@@ -22,6 +22,7 @@ int main(int argc, char *argv[]) {
   fLI::FLAGS_minloglevel = 2;
 
   do_arguments(argc, argv);
+  DEBUG_MSG("[main] Current Log Level: ", fLI::FLAGS_minloglevel);
 
   Core core;
   core.Run();
