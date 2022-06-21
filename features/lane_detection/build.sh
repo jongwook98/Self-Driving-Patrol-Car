@@ -15,12 +15,25 @@ function check_error()
 	ret=$(grep -e " warning:" -e " error:" < ${LOG})
 	if [[ ${ret} != "" ]]
 	then
-		echo_func "[clang err] Occured the warning/error when compile time" 1
+		echo_func "[ERR] Occured the warning/error when compile time" 1
 		rm -rf ${LOG}
 		exit 1
 	fi
 
 	rm -rf ${LOG}
+}
+
+function check_mosquitto_daemon()
+{
+	mqtt_status=$(systemctl status ${MQTT} | grep "active (running)")
+	while [[ ${mqtt_status} == "" ]]
+	do
+		systemctl restart ${MQTT}
+		echo_func "[features/lane_detection] Starting the ${MQTT},,,"
+		sleep 1
+
+		mqtt_status=$(systemctl status ${MQTT} | grep "active (running)")
+	done
 }
 
 function build_for_third_party_app()
@@ -60,5 +73,7 @@ build_for_third_party_app ${GOOGLE_LOG}
 build_for_third_party_app ${MQTT}
 
 build_for_lane_detection
+
+check_mosquitto_daemon
 
 echo_func "[features/lane_detection] Build Done!" 0

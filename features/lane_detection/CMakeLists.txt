@@ -35,6 +35,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/main.cpp
   ${CMAKE_SOURCE_DIR}/camera/camera.cpp
   ${CMAKE_SOURCE_DIR}/common/message_queue.cpp
+  ${CMAKE_SOURCE_DIR}/common/mqtt.cpp
   ${CMAKE_SOURCE_DIR}/common/shared_memory.cpp
   ${CMAKE_SOURCE_DIR}/common/thread.cpp
   ${CMAKE_SOURCE_DIR}/core/core.cpp
