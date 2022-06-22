@@ -5,8 +5,10 @@
 
 #include <mosquitto.h>
 
-#include <cstdio>
-#include <tuple>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
 
 #define DEFALUT_PORT 1883
 
@@ -24,15 +26,23 @@ public: // NOLINT
   Mqtt(const char *id, const int port, void *arg);
   virtual ~Mqtt();
 
-  int Publish(const char *topic, const void *send_msg, std::size_t len);
-  int Subscribe(const char *topic, void *read_buf, std::size_t len);
+  int Publish(const std::string topic, const void *send_msg, std::size_t len);
+  int Subscribe(const std::string topic, void *read_buf, std::size_t len);
 
 private: // NOLINT
+  typedef struct MqttData {
+    std::string topic;
+    void *read_buf;
+    std::size_t len;
+  } mqtt_data_t;
+
   int port;
   const char *id;
   struct mosquitto *mqtt;
+  std::shared_ptr<mqtt_data_t> mqtt_data;
 
-  static inline std::tuple<const char *, void *, std::size_t> subscribe_data;
+  static inline std::mutex internal_lock;
+  static inline std::map<std::string, std::shared_ptr<mqtt_data_t>> sub_data;
   static void OnMessage(struct mosquitto *mqtt, void *arg,
                         const struct mosquitto_message *msg);
 };
