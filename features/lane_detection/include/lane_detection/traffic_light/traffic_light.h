@@ -8,16 +8,18 @@
 #include <lane_detection/common/thread.h>
 
 #include <memory>
+#include <mutex>
 
 class TrafficLight : public Thread {
 public: // NOLINT
   TrafficLight();
-  virtual ~TrafficLight();
+  virtual ~TrafficLight() = default;
 
 private: // NOLINT
   char read_buf[MAX_BUF] = {
       0,
   };
+  std::mutex traffic_light_mutex;
   std::unique_ptr<Mqtt> mqtt;
 
   void *Run(void *arg) override;

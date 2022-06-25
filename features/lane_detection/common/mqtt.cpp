@@ -5,12 +5,13 @@
 
 #define MQTT_HOST "localhost"
 
+#define ERR_MQTT_PUB_FAIL "Failed to publish the message. "
+#define ERR_MQTT_SUB_FAIL "Failed to subscribe the message. "
+#define ERR_MQTT_NOT_MATCH "Cannot find the topic matched from the message"
+
 enum class Qos : uint8_t { AT_MOST_ONCE = 0, AT_LEAST_ONCE, EXACTLY_ONCE };
 
-Mqtt::Mqtt(const char *id, const int port, void *arg)
-    : port(port), id(id), mqtt(nullptr),
-      mqtt_data(std::make_shared<mqtt_data_t>()) {
-
+Mqtt::Mqtt(const char *id, const int port, void *arg) : mqtt(nullptr) {
   /* init the mosquitto */
   int ret = mosquitto_lib_init();
   EXIT_GUARD(ret != MOSQ_ERR_SUCCESS, "[MQTT] lib_init in Constructor ", ret);
@@ -49,8 +50,7 @@ int Mqtt::Publish(const std::string topic, const void *send_msg,
   int ret =
       mosquitto_publish(mqtt, nullptr, topic.c_str(), static_cast<int>(len),
                         send_msg, static_cast<int>(Qos::EXACTLY_ONCE), false);
-  FORMULA_GUARD(ret != MOSQ_ERR_SUCCESS, -EPERM,
-                "Failed to publish the message ", ret);
+  FORMULA_GUARD(ret != MOSQ_ERR_SUCCESS, -EPERM, ERR_MQTT_PUB_FAIL, ret);
 
   return 0;
 }
@@ -64,14 +64,11 @@ int Mqtt::Subscribe(const std::string topic, void *read_buf, std::size_t len) {
   /* subscribe */
   int ret = mosquitto_subscribe(mqtt, nullptr, topic.c_str(),
                                 static_cast<int>(Qos::EXACTLY_ONCE));
-  FORMULA_GUARD(ret != MOSQ_ERR_SUCCESS, -EPERM,
-                "Failed to subscribe the message ", ret);
+  FORMULA_GUARD(ret != MOSQ_ERR_SUCCESS, -EPERM, ERR_MQTT_SUB_FAIL, ret);
 
   /* register the mqtt data */
-  mqtt_data->topic = topic;
-  mqtt_data->read_buf = read_buf;
-  mqtt_data->len = len;
-  Mqtt::sub_data[topic] = mqtt_data;
+  struct MqttData mqtt_data = {.topic = topic, .read_buf = read_buf, len = len};
+  Mqtt::sub_data.insert(std::make_pair(topic, mqtt_data));
 
   return 0;
 }
@@ -84,19 +81,21 @@ void Mqtt::OnMessage(struct mosquitto *mqtt, void *arg,
   (void)arg;
 
   bool status = false;
-  std::shared_ptr<mqtt_data_t> mqtt_data = nullptr;
+  std::size_t cp_len;
+  struct MqttData mqtt_data;
 
   /* lock */
   std::scoped_lock<std::mutex> lock(Mqtt::internal_lock);
-  mqtt_data = Mqtt::sub_data[msg->topic];
+  FORMULA_GUARD(Mqtt::sub_data.count(msg->topic) == 0, , ERR_MQTT_NOT_MATCH);
 
-  int ret = mosquitto_topic_matches_sub(mqtt_data->topic.c_str(), msg->topic,
-                                        &status);
-  FORMULA_GUARD(ret != MOSQ_ERR_SUCCESS, , "Failed to get the message. ", ret);
-
-  if (status == true) {
-    std::size_t cp_len =
-        std::max(mqtt_data->len, static_cast<std::size_t>(msg->payloadlen));
-    memcpy(mqtt_data->read_buf, msg->payload, cp_len);
+  for (auto iter = Mqtt::sub_data.lower_bound(msg->topic);
+       iter != Mqtt::sub_data.upper_bound(msg->topic); iter++) {
+    mqtt_data = iter->second;
+    mosquitto_topic_matches_sub(mqtt_data.topic.c_str(), msg->topic, &status);
+    if (status == true) {
+      cp_len =
+          std::max(mqtt_data.len, static_cast<std::size_t>(msg->payloadlen));
+      memcpy(mqtt_data.read_buf, msg->payload, cp_len);
+    }
   }
 }

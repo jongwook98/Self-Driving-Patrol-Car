@@ -10,7 +10,7 @@
 #include <mutex>
 #include <string>
 
-#define DEFALUT_PORT 1883
+#define DEFAULT_PORT 1883
 
 #define CAMERA_PUB_TOPIC "[MQTT] Camera"
 #define LANE_DETECT_PUB_TOPIC "[MQTT] Lane Detect"
@@ -30,19 +30,16 @@ public: // NOLINT
   int Subscribe(const std::string topic, void *read_buf, std::size_t len);
 
 private: // NOLINT
-  typedef struct MqttData {
+  struct MqttData {
     std::string topic;
     void *read_buf;
     std::size_t len;
-  } mqtt_data_t;
+  };
 
-  int port;
-  const char *id;
   struct mosquitto *mqtt;
-  std::shared_ptr<mqtt_data_t> mqtt_data;
 
   static inline std::mutex internal_lock;
-  static inline std::map<std::string, std::shared_ptr<mqtt_data_t>> sub_data;
+  static inline std::multimap<std::string, struct MqttData> sub_data;
   static void OnMessage(struct mosquitto *mqtt, void *arg,
                         const struct mosquitto_message *msg);
 };

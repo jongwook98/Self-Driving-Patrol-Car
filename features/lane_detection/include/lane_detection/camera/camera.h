@@ -8,16 +8,18 @@
 #include <lane_detection/common/thread.h>
 
 #include <memory>
+#include <mutex>
 
 class Camera : public Thread {
 public: // NOLINT
   Camera();
-  virtual ~Camera();
+  virtual ~Camera() = default;
 
 private: // NOLINT
   char read_buf[MAX_BUF] = {
       0,
   };
+  std::mutex camera_mutex;
   std::unique_ptr<Mqtt> mqtt;
 
   void *Run(void *arg) override;

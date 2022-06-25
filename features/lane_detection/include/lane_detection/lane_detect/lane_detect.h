@@ -8,16 +8,18 @@
 #include <lane_detection/common/thread.h>
 
 #include <memory>
+#include <mutex>
 
 class LaneDetect : public Thread {
 public: // NOLINT
   LaneDetect();
-  virtual ~LaneDetect();
+  virtual ~LaneDetect() = default;
 
 private: // NOLINT
   char read_buf[MAX_BUF] = {
       0,
   };
+  std::mutex lane_detect_mutex;
   std::unique_ptr<Mqtt> mqtt;
 
   void *Run(void *arg) override;
