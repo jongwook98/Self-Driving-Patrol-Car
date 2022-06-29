@@ -74,7 +74,9 @@ static inline void _spdc_uart_protocol(uint8_t *buffer, uint8_t *_buf)
         st_ptcl = *(st_protocol *)_buf;
 
         control_flow.inputs->Input1.input_angle_r32 = (real_T)st_ptcl.angle;
-        control_flow.inputs = (ExtU_control_flow_T *)&st_ptcl.flag;
+        control_flow.inputs->flag.steer = st_ptcl.flag.bit.blinker;
+        control_flow.inputs->flag.turn = st_ptcl.flag.bit.turn_onoff;
+        control_flow.inputs->flag.move = st_ptcl.flag.bit.move_onoff;
     }
 
     memset((void *)_buf, 0x00, sizeof(uint8_t) * LAT_BUF_SIZE);
