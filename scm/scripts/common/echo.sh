@@ -10,6 +10,8 @@ export IMAGE_PATH="*/image/*"
 export MCU_CORE_PATH="*/Core/*"
 export MCU_DRIVER_PATH="*/Drivers/*"
 export MCU_MATALB_PATH="*/matlab/*"
+export WEB_STATIC_PATH="*/static/*"
+export WEB_TEMPLATES_PATH="*/templates/*"
 
 echo_func()
 {
