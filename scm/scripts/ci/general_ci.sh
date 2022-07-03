@@ -7,9 +7,11 @@ COMMON_DIR=${ROOT_DIR}/scm/scripts/common
 
 source "${COMMON_DIR}/echo.sh"
 
-
 cd "${ROOT_DIR}"
 pwd
+
+git config --global http.sslVerify false
+git submodule update --init --recursive
 
 # print the basic informations
 echo_func "[scm] OS version" 0

@@ -25,14 +25,17 @@ function check_error()
 
 function check_mosquitto_daemon()
 {
-	mqtt_status=$(systemctl status ${MQTT} | grep "active (running)")
+	mqtt_status=$(service ${MQTT} status | \
+		grep -e "is running" -e "active (running)")
+
 	while [[ ${mqtt_status} == "" ]]
 	do
-		systemctl restart ${MQTT}
+		service ${MQTT} restart
 		echo_func "[features/lane_detection] Starting the ${MQTT},,,"
 		sleep 1
 
-		mqtt_status=$(systemctl status ${MQTT} | grep "active (running)")
+		mqtt_status=$(service ${MQTT} status | \
+			grep -e "is running" -e "active (running)")
 	done
 }
 

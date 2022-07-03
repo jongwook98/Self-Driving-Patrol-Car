@@ -9,7 +9,9 @@ stages:
         key: "$CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR"
         policy: pull
         paths:
-            - clang/out/
+            - core/out/
+            - features/lane_detection/out/
+            - features/mcu_control/out/
 
 General Test:
     extends: .caching
@@ -74,6 +76,7 @@ Static Anaytics Test:
         - scm/scripts/ci/static_analytics.sh
 
 Build:
+    image: sdpc:build
     extends: .caching
     stage: build
     tags:
