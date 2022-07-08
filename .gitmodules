@@ -7,3 +7,6 @@
 [submodule "third_party/rplidar_sdk"]
 	path = third_party/rplidar_sdk
 	url = https://github.com/Slamtec/rplidar_sdk
+[submodule "third_party/MATLAB-SIMULINK-code-generation"]
+	path = third_party/MATLAB-SIMULINK-code-generation
+	url = https://github.com/kimjs98/MATLAB-SIMULINK-code-generation
