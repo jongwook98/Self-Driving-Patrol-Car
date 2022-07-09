@@ -3,6 +3,7 @@
 #include <sdpc/common/sdpc_msgque.h>
 #include <sdpc/common/sdpc_uart.h>
 #include <sdpc/lane_recognition/sdpc_lane.h>
+#include <sdpc/sensor_fusion/sdpc_sensor_fusion.h>
 #include <sdpc/vehicle_recognition/sdpc_vehicle.h>
 
 static int g_escape_flag = 1;
@@ -25,12 +26,14 @@ int sdpc_main_init(void)
 
     FORMULA_GUARD(sdpc_lane_init() < 0, -EPERM, "");
     FORMULA_GUARD(sdpc_vehicle_init() < 0, -EPERM, "");
+    FORMULA_GUARD(sdpc_sensor_fusion_init() < 0, -EPERM, "");
 
     return 0;
 }
 
 int sdpc_main_exit(void)
 {
+    sdpc_sensor_fusion_exit();
     sdpc_vehicle_exit();
     sdpc_lane_exit();
 
