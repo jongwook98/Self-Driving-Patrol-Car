@@ -1,0 +1,148 @@
+#include <mqueue.h>
+
+#include <signal.h>
+#include <string.h>
+
+#include <sl_lidar.h>
+#include <sl_lidar_driver.h>
+
+#ifndef _countof
+#define _countof(_Array) static_cast<int>(sizeof(_Array) / sizeof(_Array[0]))
+#endif
+
+struct obstacle {
+    float start_angle;
+    float end_angle;
+    float min_dis;
+    float min_angle;
+};
+
+struct mqs {
+    struct mq_attr attr;
+    mqd_t mq;
+    char buf[512] = {0, };
+}
+
+bool ctrl_c_pressed = false;
+void ctrlc(int) {
+    ctrl_c_pressed = true;
+}
+
+struct mq create() {
+    struct mq_attr attr;
+    attr.mq_maxmsg = 200;
+    attr.mq_msgsize = 512;
+    mqd_t mq;
+    char buf[512] = {0, };
+}
+
+void destory() {
+    delete
+
+}
+
+sl::ILidarDriver Init() {
+
+}
+
+int Exit() {
+
+}
+
+int start(sl::ILidarDriver * drv, struct obstacle * ob) {
+    sl_lidar_response_measurement_node_hq_t nodes[8192];
+    size_t count = _countof(nodes);
+
+    op_result = drv->grabScanDataHq(nodes, count);
+    if (!SL_IS_OK(op_result))
+        return 0;
+    drv->ascendScanData(nodes, count);
+    int num_obstacle = 0;
+    float pre_angle = NULL;
+
+    for (int pos = 0; pos < static_cast<int>(count); ++pos) {
+        if (nodes[pos].dist_mm_q2/4.0f > 0 &&
+            nodes[pos].dist_mm_q2/4.0f < 1000) {
+            if (pre_angle == NULL) {
+                ob[num_obstacle].min_dis = nodes[pos].dist_mm_q2;
+                ob[num_obstacle].start_angle = nodes[pos].angle_z_q14;
+                pre_angle = nodes[pos].angle_z_q14;
+            } else if (pre_angle - nodes[pos].angle_z_q14 <= 1000 &&
+                    pre_angle - nodes[pos].angle_z_q14 >= -1000) {
+                if (ob[num_obstacle].min_dis > nodes[pos].dist_mm_q2) {
+                    ob[num_obstacle].min_dis = nodes[pos].dist_mm_q2;
+                    ob[num_obstacle].min_angle = nodes[pos].angle_z_q14;
+                }
+                ob[num_obstacle].end_angle = nodes[pos].angle_z_a14;
+                pre_angle = nodes[pos].angle_z_q14;
+            } else {
+                num_obstacle += 1;
+                ob[num_obstacle].start_angle = nodes[pos].angle_z_q14;
+
+                ob[num_obstacle].min_dis = nodes[pos].dist_mm_q2;
+                ob[num_obstacle].min_angle = nodes[pos].angle_z_q14;
+                pre_angle = nodes[pos].angle_z_q14;
+            }
+        }
+    }
+    if (ob[0].start_angle <= 1000 &&
+            ob[num_obstacle].end_angle >= 64625) {
+        ob[0].start_angle = ob[num_obstacle].start_angle;
+        if (ob[0].min_dis > ob[num_obstacle].min_dis) {
+            ob[0].min_dis = ob[num_obstacle].min_dis;
+            ob[0].min_angle = ob[num_obstacle].min_angle;
+        }
+    num_obstacle -= 1;
+    }
+    char num[3];
+    char info[31];
+    for (int P = 0; P <= num_obstacle; P++) {
+        snprintf(info, sizeof(info), ",angle : %06.2f dis : %07.2f ",
+                ob[P].min_angle*90.f/16384.f, ob[P].min_dis/4.0f);
+
+        if (P == 0) {
+            std::string tmp = std::to_string(nun_obstacle);
+            char const *num_char = tmp.c_str();
+
+            snprintf(buf, sizeof(num), num_char);
+        }
+        snprintf(buf + (P * (sizeof(info) -1)) + 1, sizeof(info), info);
+    }
+
+    }
+
+}
+
+int parser(int number struct obstacle * ob) {
+    char num[3];
+    char info[31];
+
+    for (int pos = 0; pos <= number; pos++) {
+        snprintf(info, sizeof(info), ",angle : %06.2f dis : %07.2f ",
+                ob[pos].min_angle*90.f/16384.f, ob[pos].min_dis/4.0f);
+
+        if (pos == 0) {
+            std::string tmp = std::to_string(nun_obstacle);
+            char const *num_char = tmp.c_str();
+
+            snprintf(buf, sizeof(num), num_char);
+        }
+        snprintf(buf + (P * (sizeof(info) -1)) + 1, sizeof(info), info);
+    }
+}
+
+int main(int argc, const char * argv[]) {
+    Init();
+
+    sl::ILidarDriver * drv = *sl::createLidarDriver();
+    obsatcle * ob = new obstacle[10]{};
+
+    signal(SIGINT, ctrlc);
+
+    while(!ctrl_c_pressed) {
+        start(drv, ob);
+    }
+
+    delete[] ob;
+    exit();
+}
