@@ -1,0 +1,237 @@
+/* Copyright 2022. Kim, Jongwook all rights reserved */
+
+#include <stdio.h>
+#include <sqlite3.h>
+#include <iostream>
+
+#include "include/db.h"
+
+int SQLite3DB::Open(std::string dbFileName) {
+    int rc = sqlite3_open(dbFileName.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        sqlite3_close(db);
+        return 0;
+    }
+
+    if (this->isTableExist() == 0) {
+        this->CreateTable();
+    }
+    return 1;
+}
+
+int SQLite3DB::Close() {
+    return (sqlite3_close(db) == SQLITE_OK);
+}
+
+int SQLite3DB::Upsert(std::string image_path, std::string information,
+        std::string datetime) {
+    sqlite3_stmt * stmt;
+    const char * query = QUERY_TABLE_UPSERT_RECORD;
+    int result = 1;
+
+    const char * getrow = QUERY_TABLE_COUNT;
+
+    sqlite3_prepare_v2(this->db, getrow, -1, &stmt, NULL);
+    sqlite3_step(stmt);
+    int rowcount = sqlite3_column_int(stmt, 0);
+
+    sqlite3_prepare_v2(this->db, query, -1, &stmt, NULL);
+    sqlite3_bind_int(stmt, 1, (rowcount + 1));
+    sqlite3_bind_text(stmt, 2, image_path.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, information.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, datetime.c_str(), -1, SQLITE_STATIC);
+
+    this->Begin();
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        fprintf(stderr, "line %d: %s\n", __LINE__, sqlite3_errmsg(this->db));
+        result = 0;
+    }
+
+    this->Commit();
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+
+    return result;
+}
+
+int SQLite3DB::Delete(int number) {
+    sqlite3_stmt * stmt;
+    const char * query = QUERY_TABLE_DELETE_RECORD;
+    int result = 1;
+
+    sqlite3_prepare_v2(this->db, query, -1, &stmt, NULL);
+    sqlite3_bind_int(stmt, 1, number);
+
+    this->Begin();
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        fprintf(stderr, "line %d: %s\n", __LINE__, sqlite3_errmsg(this->db));
+        result = 0;
+    }
+
+    this->Commit();
+
+    Arrange(number);
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
+int SQLite3DB::Arrange(int number) {
+    sqlite3_stmt * stmt;
+    const char * getrow = QUERY_TABLE_COUNT;
+    const char * query = QUERY_TABLE_UPDATE;
+    int result = 1;
+
+    sqlite3_prepare_v2(this->db, getrow, -1, &stmt, NULL);
+    sqlite3_step(stmt);
+
+    int rowcount = sqlite3_column_int(stmt, 0);
+
+    this->Begin();
+
+    for (int count = number; count <= rowcount; count++) {
+        sqlite3_prepare_v2(this->db, query, -1, &stmt, NULL);
+        sqlite3_bind_int(stmt, 1, count);
+        sqlite3_bind_int(stmt, 2, (count+1));
+
+        if (sqlite3_step(stmt) != SQLITE_DONE) {
+            fprintf(stderr, "line %d: %s\n", __LINE__
+                    , sqlite3_errmsg(this->db));
+            result = 0;
+        }
+    }
+
+    this->Commit();
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
+int SQLite3DB::DropTable() {
+    sqlite3_stmt * stmt;
+    const char * query = QUERY_TABLE_DROP;
+    int result = 1;
+
+    sqlite3_prepare_v2(this->db, query, -1, &stmt, NULL);
+
+    this->Begin();
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        fprintf(stderr, "line %d: %s\n", __LINE__, sqlite3_errmsg(this->db));
+        result = 0;
+    }
+
+    this->Commit();
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+
+    return result;
+}
+
+int SQLite3DB::CreateTable() {
+    sqlite3_stmt * stmt;
+    const char * query = QUERY_TABLE_CREATE;
+    int result = 1;
+
+    sqlite3_prepare_v2(this->db, query, -1, &stmt, NULL);
+
+    this->Begin();
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        fprintf(stderr, "lind %d: %s\n", __LINE__, sqlite3_errmsg(this->db));
+        result = 0;
+    }
+
+    this->Commit();
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+
+    return result;
+}
+
+int SQLite3DB::isTableExist() {
+    sqlite3_stmt * stmt;
+    const char * query = QUERY_TABLE_EXIST;
+    int result = 0;
+
+    sqlite3_prepare_v2(this->db, query, -1, &stmt, NULL);
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        result = 1;
+    }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+
+    return result;
+}
+
+int SQLite3DB::Begin() {
+    sqlite3_stmt * stmt;
+    const char * query = QUERY_DB_BEGIN;
+    int result = 1;
+
+    sqlite3_prepare_v2(this->db, query, -1, &stmt, NULL);
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        fprintf(stderr, "line %d: %s\n", __LINE__, sqlite3_errmsg(this->db));
+        result = 0;
+    }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+
+    return result;
+}
+
+int SQLite3DB::Commit() {
+    sqlite3_stmt * stmt;
+    const char * query = QUERY_DB_COMMIT;
+    int result = 1;
+
+    sqlite3_prepare_v2(this->db, query, -1, &stmt, NULL);
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        fprintf(stderr, "line %d: %s\n", __LINE__, sqlite3_errmsg(this->db));
+        result = 0;
+    }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+
+    return result;
+}
+
+int SQLite3DB::Rollback() {
+    sqlite3_stmt * stmt;
+    const char * query = QUERY_DB_ROLLBACK;
+    int result = 1;
+
+    sqlite3_prepare_v2(this->db, query, -1, &stmt, NULL);
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        fprintf(stderr, "line %d: %s\n", __LINE__, sqlite3_errmsg(this->db));
+        result = 0;
+    }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+
+    return result;
+}
+
+// Test code
+
+/*
+int main(void) {
+    std::string filename = "test.db";
+    SQLite3DB data;
+
+    //printf("%d", data.Close());
+
+    data.Open(filename);
+
+    data.Upsert("home/jong/self-driving", "1", "2022-07-02");
+
+    //data.Delete(1);
+
+    //printf("%d", data.Close());
+
+    return 1;
+}
+*/

@@ -1,0 +1,69 @@
+/* Copyright 2022. Kim, Jongwook all rights reserved */
+
+#ifndef DB_H
+#define DB_H
+
+#include <sqlite3.h>
+#include <stdio.h>
+#include <iostream>
+#include <list>
+#include <string>
+
+static const char QUERY_TABLE_CREATE[] =
+    "CREATE TABLE Testcases (number integer, image_path text,"
+    "information text, datetime text);";
+
+static const char QUERY_TABLE_EXIST[] =
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='Testcases';";
+
+static const char QUERY_TABLE_DROP[] = "DROP TABLE IF EXISTS Testcases;";
+
+static const char QUERY_TABLE_EXIST_RECORD[] =
+    "SELECT number FROM Testcases WHERE cases_=?"
+    "AND image_path=? AND Version=?;";
+
+static const char QUERY_TABLE_DELETE_RECORD[] =
+    "DELETE FROM Testcases WHERE number =?;";
+
+static const char QUERY_TABLE_COUNT[] = "SELECT COUNT(*) FROM Testcases;";
+
+static const char QUERY_TABLE_UPDATE[] =
+    "UPDATE Testcases SET number = ? WHERE number = ?;";
+
+static const char QUERY_TABLE_UPSERT_RECORD[] =
+    "INSERT OR REPLACE INTO Testcases VALUES(?, ?, ?, ?);";
+
+static const char QUERY_TABLE_SELECT_ALL[] = "SELECT number FROM Testcases;";
+
+static const char QUERY_DB_CLEAN_UP[] = "VACUUM;";
+
+static const char QUERY_DB_BEGIN[] = "BEGIN;";
+
+static const char QUERY_DB_COMMIT[] = "COMMIT;";
+
+static const char QUERY_DB_ROLLBACK[] = "ROLLBACK;";
+
+class SQLite3DB {
+ public:
+  int Open(std::string dbFileName);
+  int Close();
+  int Upsert(std::string image_path, std::string information,
+             std::string datetime);
+  int Delete(int number);
+  int Arrange(int number);
+
+ private:
+  sqlite3 *db;
+
+ private:
+  int DropTable();
+  int CreateTable();
+  int isTableExist();
+
+ private:
+  int Begin();
+  int Commit();
+  int Rollback();
+};
+
+#endif /* DB_H */

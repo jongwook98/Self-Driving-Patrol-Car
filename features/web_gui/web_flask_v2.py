@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # pylint: disable=c-extension-no-member, no-member
 '''
 This is python flask web page for patrol project
@@ -44,7 +45,7 @@ def gen_frames():
         np_buffer_3c = np.reshape(np_buffer, (720, 1280, 3))
 
         ret, encode_buffer = cv2.imencode('.jpg', np_buffer_3c)
-        time.sleep(0.2)
+        time.sleep(0.1)
         if ret is False:
             break
 
@@ -115,4 +116,4 @@ def over_speeding():
 
 
 if __name__ == '__main__':
-    APP.run(host='0.0.0.0', port=5000, debug=True)
+    APP.run(host='192.168.0.30', port=5000, debug=True)
