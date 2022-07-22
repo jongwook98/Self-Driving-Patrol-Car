@@ -26,8 +26,15 @@ if(Git_FOUND)
 else()
   set(ROOT_DIR "../..")
 endif()
+
 include_directories(${ROOT_DIR}/third_party/mosquitto/include)
 link_directories(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/out/mosquitto/lib")
+
+# for rplidar sdk
+set(LIDAR_DIR "${ROOT_DIR}/third_party/rplidar_sdk")
+set(LIDAR_STATIC_LIB "${LIDAR_DIR}/output/Linux/Release/libsl_lidar_sdk.a")
+
+include_directories(${LIDAR_DIR}/sdk/include)
 
 # make exe file
 add_executable(
@@ -40,10 +47,12 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/common/thread.cpp
   ${CMAKE_SOURCE_DIR}/core/core.cpp
   ${CMAKE_SOURCE_DIR}/lane_detect/lane_detect.cpp
+  ${CMAKE_SOURCE_DIR}/lidar/lidar.cpp
   ${CMAKE_SOURCE_DIR}/traffic_light/traffic_light.cpp
 )
 
 # set the library informatio for the target
 target_link_libraries(
   ${PROJECT_NAME} PRIVATE pthread rt ${OpenCV_LIBS} glog::glog mosquitto
+${LIDAR_STATIC_LIB}
 )

@@ -9,6 +9,7 @@ LOG="build.log"
 
 GOOGLE_LOG="glog"
 MQTT="mosquitto"
+LIDAR="rplidar_sdk"
 
 function check_error()
 {
@@ -56,6 +57,17 @@ function build_for_third_party_app()
 	cd - || exit 1
 }
 
+function build_for_third_party_lidar()
+{
+	cd "${ROOT_DIR}/third_party/${1}" || exit 1
+
+	# build
+	echo_func "[features/lane_detection] Third Party App ${1} Build Start!" 0
+	make -j "${CPU_NUM}" 2>&1
+
+	cd - || exit 1
+}
+
 function build_for_lane_detection()
 {
 	cd "${OUT_DIR}" || exit 1
@@ -74,6 +86,7 @@ mkdir -p ${OUT_DIR}
 
 build_for_third_party_app ${GOOGLE_LOG}
 build_for_third_party_app ${MQTT}
+build_for_third_party_lidar ${LIDAR}
 
 build_for_lane_detection
 
