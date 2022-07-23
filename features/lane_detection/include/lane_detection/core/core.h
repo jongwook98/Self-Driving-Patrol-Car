@@ -5,6 +5,7 @@
 
 #include <lane_detection/camera/camera.h>
 #include <lane_detection/lane_detect/lane_detect.h>
+#include <lane_detection/lidar/lidar.h>
 #include <lane_detection/traffic_light/traffic_light.h>
 
 #include <csignal>
@@ -22,6 +23,7 @@ private: // NOLINT
   std::unique_ptr<Camera> cam;
   std::unique_ptr<LaneDetect> lane_detect;
   std::unique_ptr<TrafficLight> traffic_light;
+  std::unique_ptr<Lidar> lidar;
 
   static inline bool status;
   static void SigIntHandler(int signo);

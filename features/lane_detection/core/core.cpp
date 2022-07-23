@@ -12,7 +12,8 @@ Core::Core()
     : sig_act({Core::SigIntHandler, 0, 0, 0, 0}),
       cam(std::make_unique<Camera>()),
       lane_detect(std::make_unique<LaneDetect>()),
-      traffic_light(std::make_unique<TrafficLight>()) {
+      traffic_light(std::make_unique<TrafficLight>()),
+      lidar(std::make_unique<Lidar>()) {
   Core::status = true;
 
   sigemptyset(&sig_act.sa_mask);
@@ -22,6 +23,7 @@ Core::Core()
 Core::~Core() {
   Core::status = false;
 
+  lidar = nullptr;
   traffic_light = nullptr;
   lane_detect = nullptr;
   cam = nullptr;
@@ -32,11 +34,13 @@ void Core::Run(void) {
   cam->Start(nullptr);
   lane_detect->Start(nullptr);
   traffic_light->Start(nullptr);
+  lidar->Start(nullptr);
 
   while (Core::status) {
     sleep(1);
   }
 
+  lidar->Stop();
   traffic_light->Stop();
   lane_detect->Stop();
   cam->Stop();

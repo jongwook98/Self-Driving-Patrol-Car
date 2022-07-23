@@ -19,10 +19,7 @@ public: // NOLINT
   virtual ~Lidar() = default;
 
 private: // NOLINT
-  char read_buf[MAX_BUF] = {
-      0,
-  };
-  std::mutex lidar_mutex;
+  std::unique_ptr<MessageQueue> mq;
 
   void *Run(void *arg) override;
 };
