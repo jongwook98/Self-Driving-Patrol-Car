@@ -27,8 +27,10 @@ int sdpc_message_queue_init(void)
     for (i = 0; i < TOTAL_MQ; i++)
         FORMULA_GUARD(g_msgque[i], -EPERM, ERR_INVALID_PTR);
 
-    const char *mq_path[] = {"/core_vehicle", "/lane_detection_to_core"};
-    const long mq_msg_size[] = {sizeof(char) * 4, sizeof(char) * 5};
+    const char *mq_path[] = {"/core_vehicle", "/lane_detection_to_core",
+                             "/lidar_data_to_core"};
+    const long mq_msg_size[] = {sizeof(char) * 4, sizeof(char) * 5,
+                                sizeof(char) * 5};
 
     for (i = 0; i < TOTAL_MQ; i++)
     {

@@ -23,20 +23,20 @@ int sdpc_main_init(void)
 
     FORMULA_GUARD(sdpc_uart_init() < 0, -EPERM, "");
     FORMULA_GUARD(sdpc_message_queue_init() < 0, -EPERM, "");
+    FORMULA_GUARD(sdpc_sensor_fusion_init() < 0, -EPERM, "");
 
     FORMULA_GUARD(sdpc_lane_init() < 0, -EPERM, "");
     FORMULA_GUARD(sdpc_vehicle_init() < 0, -EPERM, "");
-    FORMULA_GUARD(sdpc_sensor_fusion_init() < 0, -EPERM, "");
 
     return 0;
 }
 
 int sdpc_main_exit(void)
 {
-    sdpc_sensor_fusion_exit();
     sdpc_vehicle_exit();
     sdpc_lane_exit();
 
+    sdpc_sensor_fusion_exit();
     sdpc_message_queue_exit();
     sdpc_uart_exit();
 

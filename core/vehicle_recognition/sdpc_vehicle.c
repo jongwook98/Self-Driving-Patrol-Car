@@ -1,5 +1,6 @@
 #include <sdpc/common/sdpc_common.h>
 #include <sdpc/common/sdpc_msgque.h>
+#include <sdpc/sensor_fusion/sdpc_sensor_fusion.h>
 #include <sdpc/vehicle_recognition/sdpc_vehicle.h>
 
 #define VEHICLE_THREAD_NUM 3
@@ -119,6 +120,10 @@ static void *_lidar_thread(void *arg)
     sync_t *lidar_sync = vehicle->lidar_sync;
     char send_data[] = {MQ_START, VEHICLE_MODE, LIDAR_DONE, MQ_STOP};
 
+    char read_buf[5] = {
+        0,
+    };
+
     /* send */
     send_signal(main_sync);
 
@@ -128,6 +133,7 @@ static void *_lidar_thread(void *arg)
         wait_signal(lidar_sync);
 
         /* TODO */
+        sdpc_message_queue_receive(LIDAR_MODE, read_buf, sizeof(read_buf));
 
         /* send to use the message queue */
         sdpc_message_queue_send(VEHICLE_MODE, send_data, sizeof(send_data));
