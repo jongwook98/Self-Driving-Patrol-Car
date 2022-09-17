@@ -24,6 +24,7 @@ public: // NOLINT
 
 private: // NOLINT
   std::unique_ptr<MessageQueue> mq;
+
   struct obstacle {
     float start_angle;
     float end_angle;
@@ -35,8 +36,6 @@ private: // NOLINT
   float max_dis_mm = 1000;
   float same_ob_start = 1000;
   float same_ob_opposite = 64625;
-
-  //  init , exit 구조 필요 없이 생성자, 스마트포인터로 가능
 
   sl::ILidarDriver *Init();
   void Exit(sl::ILidarDriver *drv);

@@ -3,13 +3,13 @@
 ROOT_DIR=$(git rev-parse --show-toplevel)
 source "${ROOT_DIR}/scm/scripts/common/echo.sh"
 
-OUT_DIR="out"
+LANE_DETECTION_DIR=${ROOT_DIR}/features/lane_detection
+OUT_DIR=${LANE_DETECTION_DIR}/out
 CPU_NUM=$(grep -c processor /proc/cpuinfo)
 LOG="build.log"
 
 GOOGLE_LOG="glog"
 MQTT="mosquitto"
-LIDAR="rplidar_sdk"
 
 function check_error()
 {
@@ -57,16 +57,26 @@ function build_for_third_party_app()
 	cd - || exit 1
 }
 
-function build_for_third_party_lidar()
+function build_for_lidar()
 {
-	cd "${ROOT_DIR}/third_party/${1}" || exit 1
+	LIDAR_DIR="${ROOT_DIR}/third_party/rplidar_sdk"
+	LIDAR_OUT="${OUT_DIR}/lidar"
 
-	# build
-	echo_func "[features/lane_detection] Third Party App ${1} Build Start!" 0
-	make -j "${CPU_NUM}" 2>&1
+	mkdir -p "${LIDAR_OUT}"
 
-	cd - || exit 1
+	make -C "${LIDAR_DIR}" clean
+	make \
+		-C "${LIDAR_DIR}" \
+		-j "${CPU_NUM}" \
+		BUILD_OUTPUT_ROOT="${LIDAR_OUT}"
+
+	if [[ ! -f  "${LIDAR_OUT}/libsl_lidar_sdk.a" ]]
+	then
+		echo_func "[clang err] Failed to build the lidar" 1
+		exit 1
+	fi
 }
+
 
 function build_for_lane_detection()
 {
@@ -81,12 +91,12 @@ function build_for_lane_detection()
 	cd - || exit 1
 }
 
-rm -rf ${OUT_DIR}
-mkdir -p ${OUT_DIR}
+rm -rf "${OUT_DIR}"
+mkdir -p "${OUT_DIR}"
 
 build_for_third_party_app ${GOOGLE_LOG}
 build_for_third_party_app ${MQTT}
-build_for_third_party_lidar ${LIDAR}
+build_for_lidar
 
 build_for_lane_detection
 

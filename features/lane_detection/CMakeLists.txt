@@ -32,9 +32,8 @@ link_directories(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/out/mosquitto/lib")
 
 # for rplidar sdk
 set(LIDAR_DIR "${ROOT_DIR}/third_party/rplidar_sdk")
-set(LIDAR_STATIC_LIB "${LIDAR_DIR}/output/Linux/Release/libsl_lidar_sdk.a")
-
 include_directories(${LIDAR_DIR}/sdk/include)
+link_directories(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/out/lidar")
 
 # make exe file
 add_executable(
@@ -54,5 +53,5 @@ add_executable(
 # set the library informatio for the target
 target_link_libraries(
   ${PROJECT_NAME} PRIVATE pthread rt ${OpenCV_LIBS} glog::glog mosquitto
-${LIDAR_STATIC_LIB}
+  libsl_lidar_sdk.a
 )

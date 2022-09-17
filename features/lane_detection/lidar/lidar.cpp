@@ -3,12 +3,12 @@
 #include <lane_detection/common/common.h>
 #include <lane_detection/lidar/lidar.h>
 
+#define LIDAR_BOUDRATE 115200
+#define LIDAR_OPT_CHANNEL "/dev/ttyUSB0"
 #define LIDAR_PATH "/lidar_data_to_core"
 
 Lidar::Lidar()
     : mq(std::make_unique<MessageQueue>(LIDAR_PATH, (sizeof(uint8_t) * 5)) ) {}
-
-// void 클래스 내의 변수로서 가져가면
 
 sl::ILidarDriver* Lidar::Init() {
     sl::ILidarDriver * drv = *sl::createLidarDriver();
@@ -16,8 +16,8 @@ sl::ILidarDriver* Lidar::Init() {
         fprintf(stderr, "insufficent memory, exit\n");
     exit(2);
     }
-    const char * opt_channel = "/dev/ttyUSB0";
-    sl_u32 baudrate = 115200;
+    const char * opt_channel = LIDAR_OPT_CHANNEL;
+    sl_u32 baudrate = LIDAR_BOUDRATE;
     sl_result op_result;
     sl::IChannel * _channel;
 
@@ -109,10 +109,9 @@ int Lidar::Publisher(int number, struct Lidar::obstacle * ob) {
 
             snprintf(buf, sizeof(num), "%s", num_char);
         }
-        snprintf(buf + (pos * (sizeof(info) -1)) + 1, sizeof(info), "%s", info);
+        snprintf(buf + (pos * (sizeof(info) -1)) + 1 +
+        static_cast<int>(number / 10) , sizeof(info), "%s", info);
     }
-
-    // message queue send end
 
     std::cout << buf << std::endl;
     return 1;
@@ -121,13 +120,17 @@ int Lidar::Publisher(int number, struct Lidar::obstacle * ob) {
 void *Lidar::Run(void *arg) {
     sl::ILidarDriver * drv = Lidar::Init();
     struct Lidar::obstacle * ob = new struct Lidar::obstacle[10]{};
-    ob = { 0, };
+
+    drv->setMotorSpeed();
+    drv->startScan(0, 1);
 
     while (status) {
         DEBUG_MSG("[LIDAR] in Thread!");
         Lidar::Operate(drv, ob);
     }
+
     delete[] ob;
     Lidar::Exit(drv);
+
     return nullptr;
 }
