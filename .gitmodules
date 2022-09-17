@@ -7,3 +7,9 @@
 [submodule "third_party/rplidar_sdk"]
 	path = third_party/rplidar_sdk
 	url = https://github.com/Slamtec/rplidar_sdk
+[submodule "third_party/sort"]
+	path = third_party/sort
+	url = https://github.com/abewley/sort
+[submodule "third_party/yolact"]
+	path = third_party/yolact
+	url = https://github.com/dbolya/yolact
