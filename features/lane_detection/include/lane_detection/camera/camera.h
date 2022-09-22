@@ -10,6 +10,8 @@
 #include <memory>
 #include <mutex>
 
+#include "opencv2/opencv.hpp"
+
 class Camera : public Thread {
 public: // NOLINT
   Camera();
@@ -19,9 +21,9 @@ private: // NOLINT
   char read_buf[MAX_BUF] = {
       0,
   };
+  cv::VideoCapture StartCamera();
   std::mutex camera_mutex;
   std::unique_ptr<Mqtt> mqtt;
-
   void *Run(void *arg) override;
 };
 

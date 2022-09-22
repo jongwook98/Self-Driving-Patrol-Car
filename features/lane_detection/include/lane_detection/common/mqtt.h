@@ -10,6 +10,8 @@
 #include <mutex>
 #include <string>
 
+#include "opencv2/opencv.hpp"
+
 #define DEFAULT_PORT 1883
 
 #define CAMERA_PUB_TOPIC "[MQTT] Camera"
