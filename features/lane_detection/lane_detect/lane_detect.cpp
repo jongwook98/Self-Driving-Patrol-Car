@@ -171,14 +171,14 @@ int LaneDetect::SendMQ(int angle) {
 }
 
 void *LaneDetect::Run(void *arg) {
-  const std::string str = LANE_DETECT_PUB_TOPIC;
   std::unique_lock<std::mutex> sync(lane_detect_mutex, std::defer_lock);
   cv::Mat cam;
   mqtt->Subscribe(LANE_DETECT_SUB_TOPIC, read_buf, sizeof(read_buf));
   while (status) {
     DEBUG_MSG("[Lane Detect] in Thread!");
     /* publish to the traffic light */
-    mqtt->Publish(LANE_DETECT_PUB_TOPIC, str.c_str(), str.length());
+    mqtt->Publish(LANE_DETECT_PUB_TOPIC, reinterpret_cast<void *>(&cam),
+                  sizeof(cam));
     sync.lock();
     if (strlen(read_buf)) {
       /* subscribe from the camera */
