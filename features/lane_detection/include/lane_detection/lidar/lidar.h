@@ -24,16 +24,32 @@ public: // NOLINT
 
 private: // NOLINT
   std::unique_ptr<MessageQueue> mq;
+  struct message_q {
+    uint8_t start;
+    uint8_t mode;
+    uint8_t trash;
+    uint8_t obstacle_num;
+    uint8_t obstacle_info[40];
+    uint8_t stop;
+  };
+
+  struct send_data {
+    uint16_t min_dis;
+    uint16_t min_angle;
+  };
 
   struct obstacle {
     float start_angle;
     float end_angle;
     float min_dis;
     float min_angle;
+
+    struct send_data s_data;
   };
 
   float min_dis_mm = 0;
-  float max_dis_mm = 1000;
+  float max_dis_mm = 2550;
+  float same_ob = 750;
   float same_ob_start = 1000;
   float same_ob_opposite = 64625;
 
@@ -41,6 +57,7 @@ private: // NOLINT
   void Exit(sl::ILidarDriver *drv);
   void Operate(sl::ILidarDriver *dobstaclerv, struct Lidar::obstacle *ob);
   int Publisher(int number, struct Lidar::obstacle *ob);
+  int SendMQ(int number, struct Lidar::obstacle *ob);
 
   void *Run(void *arg) override;
 };

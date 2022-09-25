@@ -7,14 +7,16 @@
 #define LIDAR_OPT_CHANNEL "/dev/ttyUSB0"
 #define LIDAR_PATH "/lidar_data_to_core"
 
+#define LIDAR_MQ_SIZE sizeof(uint8_t) * 45
+
 Lidar::Lidar()
-    : mq(std::make_unique<MessageQueue>(LIDAR_PATH, (sizeof(uint8_t) * 5)) ) {}
+    : mq(std::make_unique<MessageQueue>(LIDAR_PATH, LIDAR_MQ_SIZE)) {}
 
 sl::ILidarDriver* Lidar::Init() {
     sl::ILidarDriver * drv = *sl::createLidarDriver();
     if (!drv) {
         fprintf(stderr, "insufficent memory, exit\n");
-    exit(2);
+        exit(2);
     }
     const char * opt_channel = LIDAR_OPT_CHANNEL;
     sl_u32 baudrate = LIDAR_BOUDRATE;
@@ -46,6 +48,7 @@ void Lidar::Operate(sl::ILidarDriver * drv, struct Lidar::obstacle * ob) {
     size_t count = _countof(nodes);
 
     sl_result op_result = drv->grabScanDataHq(nodes, count);
+
     if (!(SL_IS_OK(op_result))) {
     Lidar::Exit(drv);
     fprintf(stderr, "lidar don't operated, exit\n");
@@ -57,18 +60,27 @@ void Lidar::Operate(sl::ILidarDriver * drv, struct Lidar::obstacle * ob) {
     float pre_angle = -1;
 
     memset(ob, 0, sizeof(struct Lidar::obstacle));
+
     for (int pos = 0; pos < static_cast<int>(count); ++pos) {
         if (nodes[pos].dist_mm_q2/4.0f > min_dis_mm &&
             nodes[pos].dist_mm_q2/4.0f < max_dis_mm) {
             if (pre_angle == -1) {
                 ob[ob_ID].min_dis = nodes[pos].dist_mm_q2;
+                ob[ob_ID].s_data.min_dis = static_cast<uint16_t>(
+                    nodes[pos].dist_mm_q2/4.0f);
+
                 ob[ob_ID].start_angle = nodes[pos].angle_z_q14;
                 pre_angle = nodes[pos].angle_z_q14;
-            } else if (pre_angle - nodes[pos].angle_z_q14 <= max_dis_mm &&
-                    pre_angle - nodes[pos].angle_z_q14 >= -max_dis_mm) {
+            } else if (pre_angle - nodes[pos].angle_z_q14 <= same_ob &&
+                    pre_angle - nodes[pos].angle_z_q14 >= -same_ob) {
                 if (ob[ob_ID].min_dis > nodes[pos].dist_mm_q2) {
                     ob[ob_ID].min_dis = nodes[pos].dist_mm_q2;
+                    ob[ob_ID].s_data.min_dis = static_cast<uint16_t>(
+                        nodes[pos].dist_mm_q2/4.0f);
+
                     ob[ob_ID].min_angle = nodes[pos].angle_z_q14;
+                    ob[ob_ID].s_data.min_angle = static_cast<uint16_t>(
+                        nodes[pos].angle_z_q14*90.f/16384.f);
                 }
                 ob[ob_ID].end_angle = nodes[pos].angle_z_q14;
                 pre_angle = nodes[pos].angle_z_q14;
@@ -77,8 +89,16 @@ void Lidar::Operate(sl::ILidarDriver * drv, struct Lidar::obstacle * ob) {
                 ob[ob_ID].start_angle = nodes[pos].angle_z_q14;
 
                 ob[ob_ID].min_dis = nodes[pos].dist_mm_q2;
+                ob[ob_ID].s_data.min_dis = static_cast<uint16_t>(
+                    nodes[pos].dist_mm_q2/4.0f);
+
                 ob[ob_ID].min_angle = nodes[pos].angle_z_q14;
+                ob[ob_ID].s_data.min_angle = static_cast<uint16_t>(
+                    nodes[pos].angle_z_q14*90.f/16384.f);
                 pre_angle = nodes[pos].angle_z_q14;
+            }
+            if (ob_ID >= 9) {
+                break;
             }
         }
     }
@@ -92,6 +112,7 @@ void Lidar::Operate(sl::ILidarDriver * drv, struct Lidar::obstacle * ob) {
     ob_ID -= 1;
     }
     Lidar::Publisher(ob_ID, ob);
+    Lidar::SendMQ(ob_ID, ob);
 }
 
 int Lidar::Publisher(int number, struct Lidar::obstacle * ob) {
@@ -109,12 +130,35 @@ int Lidar::Publisher(int number, struct Lidar::obstacle * ob) {
 
             snprintf(buf, sizeof(num), "%s", num_char);
         }
-        snprintf(buf + (pos * (sizeof(info) -1)) + 1 +
-        static_cast<int>(number / 10) , sizeof(info), "%s", info);
+        snprintf(buf + (pos * (sizeof(info) -1)) + 1, sizeof(info), "%s", info);
     }
 
     std::cout << buf << std::endl;
     return 1;
+}
+
+int Lidar::SendMQ(int number, struct Lidar::obstacle *ob) {
+    uint8_t data[42] = {0, };
+
+    data[1] = static_cast<uint8_t>(number);
+
+    for (int pos = 0; pos <= number; pos++) {
+        uint32_t angle = ob[pos].s_data.min_angle;
+        uint32_t dis = ob[pos].s_data.min_dis;
+
+        data[2 + pos*4] = (angle & 0xff);
+        data[3 + pos*4] = (angle >> 8 & 0xff);
+
+        data[4 + pos*4] = (dis & 0xff);
+        data[5 + pos*4] = (dis >> 8 & 0xff);
+    }
+
+    struct message_q lidar_mq;
+    mq->BuildMessage(reinterpret_cast<uint8_t *>(&lidar_mq), MqMode::LIDAR,
+                    data, sizeof(lidar_mq), sizeof(data));
+
+    mq->Send(reinterpret_cast<const char *>(&lidar_mq), sizeof(lidar_mq));
+    return 0;
 }
 
 void *Lidar::Run(void *arg) {
