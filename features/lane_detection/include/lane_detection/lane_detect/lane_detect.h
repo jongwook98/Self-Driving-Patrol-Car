@@ -43,8 +43,10 @@ private: // NOLINT
   struct message_q {
     uint8_t start;
     uint8_t mode;
-    uint8_t status_flag;
+    uint8_t jump;
+    uint8_t stopinf[8];
     uint8_t angle;
+    uint8_t line_inf;
     uint8_t stop;
   };
   void *Run(void *arg) override;
@@ -54,7 +56,7 @@ private: // NOLINT
                std::vector<cv::Vec4i> lines);
   int CalLaneAngle(cv::Mat src);
   int FindLastPoint(float servo_direct, const cv::Mat &line_result);
-  float DivideLane(std::vector<cv::Vec4i> lines, size_t i);
+  float DivideLane(std::vector<cv::Vec4i> lines);
   cv::Mat FindColorHsv(cv::Mat img);
   cv::Mat ConvertImg(cv::Mat src);
   int FindLanes(cv::Mat src, cv::Mat canny);
@@ -63,6 +65,7 @@ private: // NOLINT
   int line_flag[2];
   int pre_c_x2;
   float r_slope, l_slope;
+  double stopline;
 };
 
 #endif /* LANE_DETECT_H */
