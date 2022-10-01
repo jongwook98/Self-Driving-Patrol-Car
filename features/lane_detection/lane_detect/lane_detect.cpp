@@ -6,7 +6,7 @@
 LaneDetect::LaneDetect()
     : lane_detect_mutex(), mqtt(std::make_unique<Mqtt>(LANE_DETECT_PUB_TOPIC,
                                                        DEFAULT_PORT, nullptr)),
-      mq(std::make_unique<MessageQueue>(LANE_PATH, (sizeof(uint8_t)*14)) ) {}
+      mq(std::make_unique<MessageQueue>(LANE_PATH, MQ_SIZE) ) {}
 
 int LaneDetect::CalLaneAngle(cv::Mat src) {
     int straight_lane_angle = 0;
@@ -20,23 +20,23 @@ int LaneDetect::CalLaneAngle(cv::Mat src) {
 
 cv::Mat LaneDetect::ConvertImg(cv::Mat src) {
     cv::Point rect[4];
-    rect[0] = cv::Point(0, 480);
-    rect[1] = cv::Point(0, HEIGHT);
+    rect[0] = cv::Point(INIT, MID);
+    rect[1] = cv::Point(INIT, HEIGHT);
     rect[2] = cv::Point(WIDTH, HEIGHT);
-    rect[3] = cv::Point(WIDTH, 480);
+    rect[3] = cv::Point(WIDTH, MID);
 
     cv::rectangle(src, cv::Rect(rect[0], rect[2]),
-                  cv::Scalar(255, 0, 0), 2, 8, 0);
+                  BLUE, LINE_THICKNESS, LINE_TYPE, LINE_SHIFT);
 
     cv::Mat ROI = SetRoi(src, rect);
     cv::Mat HSV = FindColorHsv(ROI);
 
     cv::Mat filtering, closing;
-    cv::bilateralFilter(HSV, filtering, 5, 100, 100);
+    cv::bilateralFilter(HSV, filtering, PIXEL_D, SIGMACOLOR, SIGMASPACE);
     cv::morphologyEx(filtering, closing, cv::MORPH_CLOSE, cv::Mat());
 
     cv::Mat canny;
-    cv::Canny(closing, canny, 150, 270);
+    cv::Canny(closing, canny, CANNY_LOW_THRESHOLD, CANNY_HIGH_THRESHOLD);
     return canny;
 }
 
@@ -82,13 +82,16 @@ int LaneDetect::CalLanes(cv::Mat img, const cv::Mat &line_result,
     r_slope = 0;
     line_flag[0] = 0;
     line_flag[1] = 0;
+    l_x = 0;
+    r_x = 0;
     stopline = -1;
     float servo_direct = 0;
-    servo_direct = DivideLane(lines);
+    servo_direct = DivideLane(lines, line_result);
     return CalAngle(servo_direct, line_result);
 }
 
-float LaneDetect::DivideLane(std::vector<cv::Vec4i> lines) {
+float LaneDetect::DivideLane(std::vector<cv::Vec4i> lines,
+                             const cv::Mat &line_result) {
     for ( size_t i = 0; i < lines.size(); i++ ) {
         cv::Vec4i line = lines[i];
         int x1 = line[0];
@@ -97,7 +100,7 @@ float LaneDetect::DivideLane(std::vector<cv::Vec4i> lines) {
         int y2 = line[3];
         float slope = 0;
         if ( x2 == x1 )
-            slope = 999.;
+            slope = MAX_SLOPE;
         else
             slope = (y1 - y2) / static_cast<float>(x1 - x2);
 
@@ -113,9 +116,10 @@ float LaneDetect::DivideLane(std::vector<cv::Vec4i> lines) {
                 line_flag[1] = 1;
             } else {}
         }
-        if (fabsf(slope) < LINE_ROW_THRESHOLD && x2 - x1 > 20) {
+        if (fabsf(slope) < LINE_ROW_THRESHOLD && (x2 - x1 > 20) &&
+            x1 > HO_BOUNDARY && x1 < WIDTH / 2) {
             int mid = (y1 + y2) / 2;
-            stopline = (600-static_cast<double>(mid));
+            stopline = (WIDTH-static_cast<double>(mid)) * 0.18;
         } else {
             stopline = -1;
         }
@@ -124,14 +128,14 @@ float LaneDetect::DivideLane(std::vector<cv::Vec4i> lines) {
 }
 
 int LaneDetect::CalAngle(float servo_direct, const cv::Mat &line_result) {
-    float calculated_angle = 0;
+    int calculated_angle = 0;
     int cal_point = FindLastPoint(servo_direct, line_result);
-    float diff = (cal_point-(WIDTH/2));
+    int diff = (cal_point-(WIDTH/2));
     calculated_angle = atan2(diff, HEIGHT)*180/CV_PI;
-    if (calculated_angle > 90)
-        calculated_angle = 90;
-    else if (calculated_angle < -90)
-        calculated_angle = -90;
+    if (calculated_angle > MID_ANGLE)
+        calculated_angle = MID_ANGLE;
+    else if (calculated_angle < -MID_ANGLE)
+        calculated_angle = -MID_ANGLE;
     return calculated_angle;
 }
 
@@ -141,13 +145,22 @@ int LaneDetect::FindLastPoint(float servo_direct, const cv::Mat &line_result) {
     int c_y1 = HEIGHT;
     int c_y2 = 0;
     if (line_flag[0] == 1 && line_flag[1] == 1) {
+        if (fabsf(r_x - l_x) > HO_BOUNDARY) {
+            if (l_x < left_line) {
+                change_line = 1;
+                l_x = l_x + X_HO_THRESHOLD;
+            } else if (r_x > right_line) {
+                change_line = 2;
+                r_x = r_x - X_HO_THRESHOLD;
+            } else {}
+        }
         c_x2 = (l_x + r_x)/2;
     } else if (line_flag[0] == 1 || line_flag[1] == 1) {
-        if (l_slope < -1.2) {
-            r_x = l_x + 580;  // 780
+        if (l_slope < -SLOPE_THRESHOLD) {
+            r_x = l_x + X_THRESHOLD;
             c_x2 = (l_x + r_x)/2;
-        } else if (r_slope > 1.2) {
-            l_x = r_x - 580;
+        } else if (r_slope > SLOPE_THRESHOLD) {
+            l_x = r_x - X_THRESHOLD;
             c_x2 = (l_x + r_x)/2;
         } else {
             c_x2 = ((HEIGHT/servo_direct) * (-1))*0.5 + WIDTH/2;
@@ -157,21 +170,21 @@ int LaneDetect::FindLastPoint(float servo_direct, const cv::Mat &line_result) {
     }
     pre_c_x2 = c_x2;
     cv::line(line_result, cv::Point(c_x1, c_y1), cv::Point(c_x2, c_y2),
-             cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
+             RED, LINE_THICKNESS, cv::LINE_AA);
     return c_x2;
 }
 
 int LaneDetect::SendMQ(int angle) {
     uint8_t data[11]= {0};
     int64_t stop_inf = 0;
-    stopline = stopline * 1000;
+    stopline = stopline * STOP_NUM;
     stop_inf = static_cast<int64_t>(stopline);
     for ( int i = 0; i< 8; i++ ) {
-        data[8-i] = ((stop_inf >> (i * 8)) & 0xff);
+        data[i+2] = ((stop_inf >> (i * 8)) & 0xff);
     }
-    data[9] = static_cast<uint8_t>(angle+90);
-    data[10] = 0;
-    struct message_q lane_mq;
+    data[1] = static_cast<uint8_t>(angle+90);
+    data[10] = static_cast<uint8_t>(change_line);
+    struct lane_message_q lane_mq;
     mq->BuildMessage(reinterpret_cast<uint8_t *>(&lane_mq), MqMode::OPENCV,
                      data, sizeof(lane_mq), sizeof(data));
     mq->Send(reinterpret_cast<const char *>(&lane_mq), (sizeof(lane_mq)));

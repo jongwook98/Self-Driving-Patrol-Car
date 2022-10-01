@@ -7,16 +7,16 @@ TrafficLight::TrafficLight()
   : traffic_light_mutex(),
     mqtt(std::make_unique<Mqtt>(TRAFFIC_LIGHT_PUB_TOPIC, DEFAULT_PORT,
                                 nullptr)),
-    mq(std::make_unique<MessageQueue>(TRAFFIC_PATH, (sizeof(uint8_t)*4))) {}
+    mq(std::make_unique<MessageQueue>(TRAFFIC_PATH, T_MQ_SIZE)) {}
 
 cv::Mat TrafficLight::RegionOfInterset(cv::Mat cam) {
   cv::Mat mask = cv::Mat::zeros(cam.size(), CV_8UC3);
 
   cv::Point traffic_rect[4];
   traffic_rect[0] = cv::Point(0, 0);
-  traffic_rect[1] = cv::Point(0, 300);
-  traffic_rect[2] = cv::Point(800, 300);
-  traffic_rect[3] = cv::Point(800, 0);
+  traffic_rect[1] = cv::Point(0, TRAFFIC_WIDTH);
+  traffic_rect[2] = cv::Point(TRAFFIC_HEIGHT, TRAFFIC_WIDTH);
+  traffic_rect[3] = cv::Point(TRAFFIC_HEIGHT, 0);
 
   const cv::Point* ppt[1] = { traffic_rect };
   int npt[] = { 4 };
@@ -128,13 +128,9 @@ int TrafficLight::Publisher(int color) {
   uint8_t data[1]= {0};
   data[0] = static_cast<uint8_t>(color);
   struct message_q traffic_mq;
-  mq->BuildMessage(&traffic_mq.start, MqMode::OPENCV,
+  mq->BuildMessage(reinterpret_cast<uint8_t *>(&traffic_mq), MqMode::OPENCV,
                     data, sizeof(traffic_mq), sizeof(data));
-  char send_msg[4] = {static_cast<char>(traffic_mq.start),
-                      static_cast<char>(traffic_mq.mode),
-                      static_cast<char>(traffic_mq.color),
-                      static_cast<char>(traffic_mq.stop)};
-  mq->Send(send_msg, (sizeof(uint8_t)*4));
+  mq->Send(reinterpret_cast<const char *>(&traffic_mq), sizeof(traffic_mq));
   return 0;
 }
 

@@ -13,15 +13,25 @@
 #include <mutex>
 #include <vector>
 
-#include "opencv2/opencv.hpp"
+#include <opencv2/opencv.hpp>
 
 #define TRAFFIC_PATH "/traffic_light_to_core"
 
+#define T_MQ_SIZE sizeof(uint8_t) * 4
 #define G_RATIO 0.6
 #define sigma_color 10
 #define sigma_space 10
 #define font_face 2
 #define font_scale 1.2
+#define TRAFFIC_WIDTH 200
+#define TRAFFIC_HEIGHT 640
+
+struct message_q {
+  uint8_t start;
+  uint8_t mode;
+  uint8_t color;
+  uint8_t stop;
+};
 
 class TrafficLight : public Thread {
 public: // NOLINT
@@ -35,12 +45,6 @@ private: // NOLINT
   std::mutex traffic_light_mutex;
   std::unique_ptr<Mqtt> mqtt;
   std::unique_ptr<MessageQueue> mq;
-  struct message_q {
-    uint8_t start;
-    uint8_t mode;
-    uint8_t color;
-    uint8_t stop;
-  };
 
   cv::Mat RegionOfInterset(cv::Mat cam);
   void ShowResult(cv::Mat result, int color);
