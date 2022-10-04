@@ -59,60 +59,74 @@ void Lidar::Operate(sl::ILidarDriver * drv, struct Lidar::obstacle * ob) {
     int ob_ID = 0;
     float pre_angle = -1;
 
+    float raw_dis;
+    float raw_angle;
+
     memset(ob, 0, sizeof(struct Lidar::obstacle));
 
     for (int pos = 0; pos < static_cast<int>(count); ++pos) {
         if (nodes[pos].dist_mm_q2/4.0f > min_dis_mm &&
             nodes[pos].dist_mm_q2/4.0f < max_dis_mm) {
-            if (pre_angle == -1) {
-                ob[ob_ID].min_dis = nodes[pos].dist_mm_q2;
-                ob[ob_ID].s_data.min_dis = static_cast<uint16_t>(
-                    nodes[pos].dist_mm_q2/4.0f);
-
-                ob[ob_ID].start_angle = nodes[pos].angle_z_q14;
-                pre_angle = nodes[pos].angle_z_q14;
-            } else if (pre_angle - nodes[pos].angle_z_q14 <= same_ob &&
-                    pre_angle - nodes[pos].angle_z_q14 >= -same_ob) {
-                if (ob[ob_ID].min_dis > nodes[pos].dist_mm_q2) {
-                    ob[ob_ID].min_dis = nodes[pos].dist_mm_q2;
+            raw_dis = nodes[pos].dist_mm_q2;
+            raw_angle = nodes[pos].angle_z_q14;
+            if (raw_angle < left_end || (raw_angle > right_start &&
+                 raw_angle < right_end)) {
+                if (pre_angle == -1) {
+                    ob[ob_ID].min_dis = raw_dis;
                     ob[ob_ID].s_data.min_dis = static_cast<uint16_t>(
-                        nodes[pos].dist_mm_q2/4.0f);
+                        raw_dis/4.0f);
 
-                    ob[ob_ID].min_angle = nodes[pos].angle_z_q14;
-                    ob[ob_ID].s_data.min_angle = static_cast<uint16_t>(
-                        nodes[pos].angle_z_q14*90.f/16384.f);
+                    ob[ob_ID].start_angle = raw_angle;
+                    pre_angle = raw_angle;
+                } else if (pre_angle - raw_angle <= same_ob &&
+                    pre_angle - raw_angle >= -same_ob) {
+                        if (ob[ob_ID].min_dis > raw_dis) {
+                            ob[ob_ID].min_dis = raw_dis;
+                            ob[ob_ID].s_data.min_dis = static_cast<uint16_t>(
+                                raw_dis/4.0f);
+
+                            ob[ob_ID].min_angle = raw_angle;
+                            ob[ob_ID].s_data.min_angle = 360 - static_cast<
+                                uint16_t>(raw_angle*90.f/16384.f);
+                        }
+
+                    ob[ob_ID].end_angle = raw_angle;
+                    pre_angle = raw_angle;
+                } else {
+                    ob_ID += 1;
+                    ob[ob_ID].start_angle = raw_angle;
+                    ob[ob_ID].min_dis = raw_dis;
+                    ob[ob_ID].s_data.min_dis = static_cast<uint16_t>(
+                        raw_dis/4.0f);
+
+                    ob[ob_ID].min_angle = raw_angle;
+                    ob[ob_ID].s_data.min_angle = 360 - static_cast<uint16_t>(
+                        raw_angle*90.f/16384.f);
+                    pre_angle = raw_angle;
                 }
-                ob[ob_ID].end_angle = nodes[pos].angle_z_q14;
-                pre_angle = nodes[pos].angle_z_q14;
-            } else {
-                ob_ID += 1;
-                ob[ob_ID].start_angle = nodes[pos].angle_z_q14;
-
-                ob[ob_ID].min_dis = nodes[pos].dist_mm_q2;
-                ob[ob_ID].s_data.min_dis = static_cast<uint16_t>(
-                    nodes[pos].dist_mm_q2/4.0f);
-
-                ob[ob_ID].min_angle = nodes[pos].angle_z_q14;
-                ob[ob_ID].s_data.min_angle = static_cast<uint16_t>(
-                    nodes[pos].angle_z_q14*90.f/16384.f);
-                pre_angle = nodes[pos].angle_z_q14;
-            }
-            if (ob_ID >= 9) {
-                break;
+                if (ob_ID >= 9) {
+                    break;
+                }
+            } else if (raw_dis/4.0f > min_dis_mm && raw_dis/4.0f < max_dis_mm) {
+                if (pre_angle != -1) {
+                    ob_ID += 1;
+                    pre_angle = -1;
+                }
             }
         }
-    }
-    if (ob[0].start_angle <= same_ob_start &&
+
+        if (ob[0].start_angle <= same_ob_start &&
             ob[ob_ID].end_angle >= same_ob_opposite) {
-        ob[0].start_angle = ob[ob_ID].start_angle;
-        if (ob[0].min_dis > ob[ob_ID].min_dis) {
-            ob[0].min_dis = ob[ob_ID].min_dis;
-            ob[0].min_angle = ob[ob_ID].min_angle;
+            ob[0].start_angle = ob[ob_ID].start_angle;
+            if (ob[0].min_dis > ob[ob_ID].min_dis) {
+                ob[0].min_dis = ob[ob_ID].min_dis;
+                ob[0].min_angle = ob[ob_ID].min_angle;
+            }
+        ob_ID -= 1;
         }
-    ob_ID -= 1;
+        Lidar::Publisher(ob_ID, ob);
+        Lidar::SendMQ(ob_ID, ob);
     }
-    Lidar::Publisher(ob_ID, ob);
-    Lidar::SendMQ(ob_ID, ob);
 }
 
 int Lidar::Publisher(int number, struct Lidar::obstacle * ob) {
@@ -143,14 +157,14 @@ int Lidar::SendMQ(int number, struct Lidar::obstacle *ob) {
     data[1] = static_cast<uint8_t>(number);
 
     for (int pos = 0; pos <= number; pos++) {
-        uint32_t angle = ob[pos].s_data.min_angle;
-        uint32_t dis = ob[pos].s_data.min_dis;
+        uint16_t angle = ob[pos].s_data.min_angle;
+        uint16_t dis = ob[pos].s_data.min_dis;
 
-        data[2 + pos*4] = (angle & 0xff);
-        data[3 + pos*4] = (angle >> 8 & 0xff);
+        data[2 + pos*2] = (angle & 0xff);
+        data[3 + pos*2] = (angle >> 8 & 0xff);
 
-        data[4 + pos*4] = (dis & 0xff);
-        data[5 + pos*4] = (dis >> 8 & 0xff);
+        data[22 + pos*2] = (dis & 0xff);
+        data[23 + pos*2] = (dis >> 8 & 0xff);
     }
 
     struct message_q lidar_mq;

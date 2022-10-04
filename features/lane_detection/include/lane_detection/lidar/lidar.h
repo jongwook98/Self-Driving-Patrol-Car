@@ -47,11 +47,17 @@ private: // NOLINT
     struct send_data s_data;
   };
 
+  float left_start = 0;
+  // 90, 270, 360 degree raw data
+  float left_end = 16384;
+  float right_start = 49152;
+  float right_end = 65536;
+
   float min_dis_mm = 0;
   float max_dis_mm = 2550;
   float same_ob = 750;
-  float same_ob_start = 1000;
-  float same_ob_opposite = 64625;
+  float same_ob_start = 500;
+  float same_ob_opposite = 65035;
 
   sl::ILidarDriver *Init();
   void Exit(sl::ILidarDriver *drv);
