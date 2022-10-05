@@ -52,6 +52,8 @@ void *Camera::Run(void *arg) {
     /* publish to the lane detect */
     mqtt->Publish(CAMERA_PUB_TOPIC, reinterpret_cast<void *>(&src),
                   sizeof(src));
+    mqtt->Publish(LANE_DETECT_PUB_TOPIC, reinterpret_cast<void *>(&src),
+                  sizeof(src));
     sync.lock();
     if (strlen(read_buf)) {
       /* subscribe from the traffic light */

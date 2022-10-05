@@ -17,18 +17,19 @@
 
 #define TRAFFIC_PATH "/traffic_light_to_core"
 
-#define T_MQ_SIZE sizeof(uint8_t) * 4
+#define T_MQ_SIZE sizeof(uint8_t) * 5
 #define G_RATIO 0.6
 #define sigma_color 10
 #define sigma_space 10
 #define font_face 2
 #define font_scale 1.2
-#define TRAFFIC_WIDTH 200
-#define TRAFFIC_HEIGHT 640
+#define TRAFFIC_WIDTH 640
+#define TRAFFIC_HEIGHT 250
 
 struct message_q {
   uint8_t start;
   uint8_t mode;
+  uint8_t jump;
   uint8_t color;
   uint8_t stop;
 };

@@ -14,9 +14,9 @@ cv::Mat TrafficLight::RegionOfInterset(cv::Mat cam) {
 
   cv::Point traffic_rect[4];
   traffic_rect[0] = cv::Point(0, 0);
-  traffic_rect[1] = cv::Point(0, TRAFFIC_WIDTH);
-  traffic_rect[2] = cv::Point(TRAFFIC_HEIGHT, TRAFFIC_WIDTH);
-  traffic_rect[3] = cv::Point(TRAFFIC_HEIGHT, 0);
+  traffic_rect[1] = cv::Point(0, TRAFFIC_HEIGHT);
+  traffic_rect[2] = cv::Point(TRAFFIC_WIDTH, TRAFFIC_HEIGHT);
+  traffic_rect[3] = cv::Point(TRAFFIC_WIDTH, 0);
 
   const cv::Point* ppt[1] = { traffic_rect };
   int npt[] = { 4 };
@@ -125,8 +125,8 @@ void TrafficLight::Operate(cv::Mat cam) {
 }
 
 int TrafficLight::Publisher(int color) {
-  uint8_t data[1]= {0};
-  data[0] = static_cast<uint8_t>(color);
+  uint8_t data[2]= {0, };
+  data[1] = static_cast<uint8_t>(color);
   struct message_q traffic_mq;
   mq->BuildMessage(reinterpret_cast<uint8_t *>(&traffic_mq), MqMode::OPENCV,
                     data, sizeof(traffic_mq), sizeof(data));

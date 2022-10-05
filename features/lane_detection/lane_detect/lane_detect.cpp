@@ -71,7 +71,7 @@ int LaneDetect::FindLanes(cv::Mat src, cv::Mat canny) {
     cv::Mat line_result = cv::Mat::zeros(src.size(), CV_8UC3);
 
     int straight_lane_angle = CalLanes(src, line_result, lines);
-    cv::addWeighted(line_result, 1, src, 0.6, 0., src);
+    // cv::addWeighted(line_result, 1, src, 0.6, 0., src);
     cv::imshow("RESULT", src);
     return straight_lane_angle;
 }
@@ -198,8 +198,8 @@ void *LaneDetect::Run(void *arg) {
   while (status) {
     DEBUG_MSG("[Lane Detect] in Thread!");
     /* publish to the traffic light */
-    mqtt->Publish(LANE_DETECT_PUB_TOPIC, reinterpret_cast<void *>(&cam),
-                  sizeof(cam));
+    // mqtt->Publish(LANE_DETECT_PUB_TOPIC, reinterpret_cast<void *>(&cam),
+    //              sizeof(cam));
     sync.lock();
     if (strlen(read_buf)) {
       /* subscribe from the camera */
