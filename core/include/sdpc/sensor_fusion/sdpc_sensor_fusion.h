@@ -4,9 +4,7 @@
 
 #include <sf_simulink.h>
 
-int sdpc_sensor_fusion_init(void);
-int sdpc_sensor_fusion_exit(void);
-
-ExtY_sf_simulink_T *sensor_fusion_function(ExtU_sf_simulink_T *input);
+RT_MODEL_sf_simulink_T *sensor_fusion_create(void);
+int sensor_fusion_destroy(RT_MODEL_sf_simulink_T **const del);
 
 #endif /* SDPC_SENSOR_FUSION_H */

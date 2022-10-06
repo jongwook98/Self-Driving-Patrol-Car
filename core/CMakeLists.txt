@@ -14,11 +14,7 @@ MATLAB-SIMULINK-code-generation/sf/sf_simulink_ert_rtw"
 # set the variable
 set(
   SF_SIMULINK_SRC
-  "${SF_DIR}/rtGetInf.c"
-  "${SF_DIR}/rtGetNaN.c"
-  "${SF_DIR}/rt_nonfinite.c"
   "${SF_DIR}/sf_simulink.c"
-  "${SF_DIR}/ert_main.c"
 )
 
 set(
