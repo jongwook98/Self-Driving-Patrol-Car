@@ -58,6 +58,7 @@ C Language Test:
         - scm/scripts/ci/clang_ci.sh
 
 Python Test:
+    image: pythonci:20.04
     extends: .caching
     stage: lang_check
     tags:

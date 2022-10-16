@@ -1,15 +1,12 @@
-{% extends "base.html" %}
-
-{% block title %}Patrol Car Project!{% endblock %}
-
-{% block page_content %}
-<div class="page-header">
+<html>
+	<head>
+		<title>Patrol Car Project!</title>
+		<link href="{{ url_for('static', path='/css/styles.css') }}" rel="stylesheet">
+	</head>
 	<body>
-		<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}" />
-
 		<h1 class="welcome">Hello, visitor!</h1>
 		<div class="intro">
-			<img src = "{{url_for('static', filename='/img/PatrolCar.png')}}">
+			<img src = "{{ url_for('static', path='/img/PatrolCar.png') }}">
 			<h3 class="top_word"><br>This is the <span class="red">web page</span></h3>
 			<h3 class="middle_word">for the</h3>
 			<h3 class="bottom_word"><span class="red">patrol car</span> project.</h3>
@@ -26,13 +23,12 @@
 			<li>Recognize defective lane and receive loaction information through GPS</li>
 			</h4>
 		</ol>
-		<br>
+    <br>
 		<div class="processing">
 			<h4>
 			The image below is an image processing of the patrol car
-			<img src="{{ url_for('stream') }}" width="100%">
+			<img src="{{ url_for('get_video') }}" width="100%">
 			</h4>
 		</div>
 	</body>
-</div>
-{% endblock %}
+</html>
