@@ -1,0 +1,25 @@
+FROM ubuntu:20.04
+MAINTAINER Jaeseong Lee "jslee24x@gmail.com"
+
+ENV TZ "Asia/Seoul"
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
+RUN	apt-get update && \
+	apt-get upgrade -y && \
+	DEBIAN_FRONTEND=noninteractive apt-get install -y \
+		python3-pip \
+		python3-dev \
+		python3-setuptools && \
+	pip3 install -U pip && \
+	pip3 install pylint \
+		flake8==3.8.4 \
+		isort==4.3.4 \
+		yapf==0.30.0 && \
+	apt-get autoclean -y && \
+	apt-get autoremove -y && \
+	apt-get clean && \
+	rm -rf /var/lib/apt/lists/* && \
+	rm -rf /tmp/*
+
+CMD ["/bin/bash", "-c", "ls -al"]
