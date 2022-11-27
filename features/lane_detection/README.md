@@ -1,5 +1,9 @@
 # Lane Detection
 
+* C++17, bash, CMake
+
+* Opencv version 4.2.0
+
 
 ## How to build
 
