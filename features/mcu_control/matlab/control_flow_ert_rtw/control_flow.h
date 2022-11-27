@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'control_flow'.
  *
- * Model version                  : 1.166
+ * Model version                  : 1.260
  * Simulink Coder version         : 9.3 (R2020a) 18-Nov-2019
- * C/C++ source code generated on : Sat May 21 01:48:12 2022
+ * C/C++ source code generated on : Fri Sep 30 21:18:49 2022
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -20,7 +20,6 @@
 #ifndef RTW_HEADER_control_flow_h_
 #define RTW_HEADER_control_flow_h_
 #include "rtwtypes.h"
-#include <math.h>
 #include <string.h>
 #ifndef control_flow_COMMON_INCLUDES_
 # define control_flow_COMMON_INCLUDES_
@@ -84,7 +83,6 @@ typedef struct {
 typedef struct {
   uint16_T encoder_u16;
   uint16_T motor_dir_u16;
-  uint32_T accel_u32;
 } MOTOR_CONTROL;
 
 #endif
@@ -95,7 +93,6 @@ typedef struct {
 typedef struct {
   uint8_T steer;
   uint8_T turn;
-  uint8_T move;
 } FROM_LATTE_FLAG;
 
 #endif
@@ -109,7 +106,7 @@ typedef struct {
   uint32_T servo_val_u32;
   uint8_T blinker_left_u8;
   uint8_T blinker_right_u8;
-  uint8_T start_stop_u8;
+  uint8_T brake_light_u8;
 } RETURN;
 
 #endif
@@ -127,21 +124,21 @@ typedef struct {
 
 /* Block signals for system '<S1>/velo_adjust' */
 typedef struct {
-  real32_T encoder_velo;               /* '<S1>/velo_adjust' */
+  int32_T encoder_velo;                /* '<S1>/velo_adjust' */
 } B_velo_adjust_control_flow_T;
 
 /* Block states (default storage) for system '<S1>/velo_adjust' */
 typedef struct {
-  real32_T avar_velo[4];               /* '<S1>/velo_adjust' */
-  uint32_T skip_prd_cnt;               /* '<S1>/velo_adjust' */
+  int32_T skip_prd_cnt;                /* '<S1>/velo_adjust' */
   uint8_T is_active_c1_control_flow;   /* '<S1>/velo_adjust' */
   uint8_T is_c1_control_flow;          /* '<S1>/velo_adjust' */
 } DW_velo_adjust_control_flow_T;
 
 /* Block signals (default storage) */
 typedef struct {
-  real32_T PID;                        /* '<S3>/Chart' */
-  uint8_T direction;                   /* '<S3>/Chart' */
+  uint32_T motor_val;                  /* '<S3>/motor pid' */
+  uint8_T direction;                   /* '<S3>/motor pid' */
+  uint8_T brake;                       /* '<S3>/motor pid' */
   uint8_T blink_right;                 /* '<S1>/Chart' */
   uint8_T blink_left;                  /* '<S1>/Chart' */
   B_velo_adjust_control_flow_T sf_velo_adjust;/* '<S1>/velo_adjust' */
@@ -150,10 +147,11 @@ typedef struct {
 
 /* Block states (default storage) for system '<Root>' */
 typedef struct {
-  real_T pid_i;                        /* '<S3>/Chart' */
-  real32_T pid_d[3];                   /* '<S3>/Chart' */
-  uint8_T is_active_c2_control_flow;   /* '<S3>/Chart' */
-  uint8_T is_c2_control_flow;          /* '<S3>/Chart' */
+  real_T blink_cnt;                    /* '<S1>/Chart' */
+  real_T blink_onoff;                  /* '<S1>/Chart' */
+  real32_T pid_val;                    /* '<S3>/motor pid' */
+  uint8_T is_active_c2_control_flow;   /* '<S3>/motor pid' */
+  uint8_T is_c2_control_flow;          /* '<S3>/motor pid' */
   uint8_T is_active_c4_control_flow;   /* '<S1>/Chart' */
   uint8_T is_c4_control_flow;          /* '<S1>/Chart' */
   DW_velo_adjust_control_flow_T sf_velo_adjust;/* '<S1>/velo_adjust' */
@@ -208,7 +206,7 @@ void control_flow_terminate(RT_MODEL_control_flow_T *const control_flow_M);
  * '<S3>'   : 'control_flow/motor_system/motor_pid'
  * '<S4>'   : 'control_flow/motor_system/servo_dir'
  * '<S5>'   : 'control_flow/motor_system/velo_adjust'
- * '<S6>'   : 'control_flow/motor_system/motor_pid/Chart'
+ * '<S6>'   : 'control_flow/motor_system/motor_pid/motor pid'
  */
 #endif                                 /* RTW_HEADER_control_flow_h_ */
 

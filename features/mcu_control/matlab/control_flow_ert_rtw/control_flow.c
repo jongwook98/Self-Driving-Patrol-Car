@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'control_flow'.
  *
- * Model version                  : 1.166
+ * Model version                  : 1.260
  * Simulink Coder version         : 9.3 (R2020a) 18-Nov-2019
- * C/C++ source code generated on : Sat May 21 01:48:12 2022
+ * C/C++ source code generated on : Fri Sep 30 21:18:49 2022
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -32,20 +32,20 @@
 #define control_fl_IN_NO_ACTIVE_CHILD_k ((uint8_T)0U)
 #define control_flow_IN_velocity_com   ((uint8_T)1U)
 #define control_flow_IN_velocity_dec   ((uint8_T)2U)
-#define control_flow_MAX_uint16_T_2    (32767)
-#define control_flow_irq_prd           (0.0005F)
-#define control_flow_pulse_per_velo    (0.101654485F)
+#define control_flow_irq_prd           (0.01F)
+#define control_flow_pulse_per_velo    (0.226205915F)
 
 /* Named constants for Chart: '<S1>/Chart' */
 #define control_fl_IN_NO_ACTIVE_CHILD_h ((uint8_T)0U)
 #define control_flow_IN_blink_com      ((uint8_T)1U)
 #define control_flow_IN_blink_init     ((uint8_T)2U)
+#define control_flow_PRD               (25.0)
 
-/* Named constants for Chart: '<S3>/Chart' */
+/* Named constants for Chart: '<S3>/motor pid' */
 #define control_flow_IN_velo_com       ((uint8_T)1U)
 #define control_flow_IN_velo_dec       ((uint8_T)2U)
-#define control_flow_kd                (7.5)
-#define control_flow_kp                (10.0)
+#define control_flow_MOTOR_PRD_LIMIT   (16799.0F)
+#define control_flow_kp                (5.0F)
 
 const RETURN control_flow_rtZRETURN = {
   0U,                                  /* motor_dir_u8 */
@@ -53,9 +53,13 @@ const RETURN control_flow_rtZRETURN = {
   0U,                                  /* servo_val_u32 */
   0U,                                  /* blinker_left_u8 */
   0U,                                  /* blinker_right_u8 */
-  0U                                   /* start_stop_u8 */
+  0U                                   /* brake_light_u8 */
 } ;                                    /* RETURN ground */
 
+int32_T div_s32_sat(int32_T numerator, int32_T denominator);
+void mul_wide_s32(int32_T in0, int32_T in1, uint32_T *ptrOutBitsHi, uint32_T
+                  *ptrOutBitsLo);
+int32_T mul_s32_sat(int32_T a, int32_T b);
 void control_flow_servo_dir_Init(B_servo_dir_control_flow_T *localB,
   DW_servo_dir_control_flow_T *localDW);
 void control_flow_servo_dir(real32_T rtu_angle, B_servo_dir_control_flow_T
@@ -94,6 +98,97 @@ void control_flow_velo_adjust(uint16_T rtu_encoder, B_velo_adjust_control_flow_T
 #   define UNUSED_PARAMETER(x)         (void) (x)
 # endif
 #endif
+
+int32_T div_s32_sat(int32_T numerator, int32_T denominator)
+{
+  int32_T quotient;
+  uint32_T tempAbsQuotient;
+  boolean_T quotientNeedsNegation;
+  if (denominator == 0) {
+    quotient = numerator >= 0 ? MAX_int32_T : MIN_int32_T;
+
+    /* Divide by zero handler */
+  } else {
+    quotientNeedsNegation = ((numerator < 0) != (denominator < 0));
+    tempAbsQuotient = (numerator < 0 ? ~(uint32_T)numerator + 1U : (uint32_T)
+                       numerator) / (denominator < 0 ? ~(uint32_T)denominator +
+      1U : (uint32_T)denominator);
+    if ((!quotientNeedsNegation) && (tempAbsQuotient >= 2147483647U)) {
+      quotient = MAX_int32_T;
+    } else if (quotientNeedsNegation && (tempAbsQuotient > 2147483647U)) {
+      quotient = MIN_int32_T;
+    } else {
+      quotient = quotientNeedsNegation ? -(int32_T)tempAbsQuotient : (int32_T)
+        tempAbsQuotient;
+    }
+  }
+
+  return quotient;
+}
+
+void mul_wide_s32(int32_T in0, int32_T in1, uint32_T *ptrOutBitsHi, uint32_T
+                  *ptrOutBitsLo)
+{
+  uint32_T absIn0;
+  uint32_T absIn1;
+  uint32_T in0Lo;
+  uint32_T in0Hi;
+  uint32_T in1Hi;
+  uint32_T productHiLo;
+  uint32_T productLoHi;
+  absIn0 = in0 < 0 ? ~(uint32_T)in0 + 1U : (uint32_T)in0;
+  absIn1 = in1 < 0 ? ~(uint32_T)in1 + 1U : (uint32_T)in1;
+  in0Hi = absIn0 >> 16U;
+  in0Lo = absIn0 & 65535U;
+  in1Hi = absIn1 >> 16U;
+  absIn0 = absIn1 & 65535U;
+  productHiLo = in0Hi * absIn0;
+  productLoHi = in0Lo * in1Hi;
+  absIn0 *= in0Lo;
+  absIn1 = 0U;
+  in0Lo = (productLoHi << /*MW:OvBitwiseOk*/ 16U) + /*MW:OvCarryOk*/ absIn0;
+  if (in0Lo < absIn0) {
+    absIn1 = 1U;
+  }
+
+  absIn0 = in0Lo;
+  in0Lo += /*MW:OvCarryOk*/ productHiLo << /*MW:OvBitwiseOk*/ 16U;
+  if (in0Lo < absIn0) {
+    absIn1++;
+  }
+
+  absIn0 = (((productLoHi >> 16U) + (productHiLo >> 16U)) + in0Hi * in1Hi) +
+    absIn1;
+  if ((in0 != 0) && ((in1 != 0) && ((in0 > 0) != (in1 > 0)))) {
+    absIn0 = ~absIn0;
+    in0Lo = ~in0Lo;
+    in0Lo++;
+    if (in0Lo == 0U) {
+      absIn0++;
+    }
+  }
+
+  *ptrOutBitsHi = absIn0;
+  *ptrOutBitsLo = in0Lo;
+}
+
+int32_T mul_s32_sat(int32_T a, int32_T b)
+{
+  int32_T result;
+  uint32_T u32_chi;
+  uint32_T u32_clo;
+  mul_wide_s32(a, b, &u32_chi, &u32_clo);
+  if (((int32_T)u32_chi > 0) || ((u32_chi == 0U) && (u32_clo >= 2147483648U))) {
+    result = MAX_int32_T;
+  } else if (((int32_T)u32_chi < -1) || (((int32_T)u32_chi == -1) && (u32_clo <
+               2147483648U))) {
+    result = MIN_int32_T;
+  } else {
+    result = (int32_T)u32_clo;
+  }
+
+  return result;
+}
 
 /* System initialize for atomic system: '<S1>/servo_dir' */
 void control_flow_servo_dir_Init(B_servo_dir_control_flow_T *localB,
@@ -159,12 +254,8 @@ void control_flow_velo_adjust_Init(B_velo_adjust_control_flow_T *localB,
 {
   localDW->is_active_c1_control_flow = 0U;
   localDW->is_c1_control_flow = control_fl_IN_NO_ACTIVE_CHILD_k;
-  localDW->skip_prd_cnt = 0U;
-  localDW->avar_velo[0] = 0.0F;
-  localDW->avar_velo[1] = 0.0F;
-  localDW->avar_velo[2] = 0.0F;
-  localDW->avar_velo[3] = 0.0F;
-  localB->encoder_velo = 0.0F;
+  localDW->skip_prd_cnt = 0;
+  localB->encoder_velo = 0;
 }
 
 /* Output and update for atomic system: '<S1>/velo_adjust' */
@@ -172,44 +263,50 @@ void control_flow_velo_adjust(uint16_T rtu_encoder, B_velo_adjust_control_flow_T
   *localB, DW_velo_adjust_control_flow_T *localDW)
 {
   int32_T encoder_temp;
-  uint32_T qY;
+  real32_T tmp;
 
   /* Chart: '<S1>/velo_adjust' */
   if (localDW->is_active_c1_control_flow == 0U) {
     localDW->is_active_c1_control_flow = 1U;
     localDW->is_c1_control_flow = control_flow_IN_velocity_dec;
-    localB->encoder_velo = 0.0F;
-    localDW->skip_prd_cnt = 0U;
-    localDW->avar_velo[0] = 0.0F;
-    localDW->avar_velo[1] = 0.0F;
-    localDW->avar_velo[2] = 0.0F;
-    localDW->avar_velo[3] = 0.0F;
+    localB->encoder_velo = 0;
+    localDW->skip_prd_cnt = 0;
   } else if (localDW->is_c1_control_flow == control_flow_IN_velocity_com) {
-    encoder_temp = rtu_encoder;
-    qY = localDW->skip_prd_cnt + /*MW:OvSatOk*/ 1U;
-    if (qY < localDW->skip_prd_cnt) {
-      qY = MAX_uint32_T;
+    if (rtu_encoder > 32768) {
+      encoder_temp = rtu_encoder - 65536;
+    } else {
+      encoder_temp = rtu_encoder;
     }
 
-    localDW->skip_prd_cnt = qY;
-    if (rtu_encoder == 0) {
-      localB->encoder_velo = 0.0F / ((real32_T)localDW->skip_prd_cnt *
-        control_flow_irq_prd);
+    if (localDW->skip_prd_cnt > 2147483646) {
+      localDW->skip_prd_cnt = MAX_int32_T;
     } else {
-      if (rtu_encoder > control_flow_MAX_uint16_T_2) {
-        encoder_temp = rtu_encoder - 65536;
+      localDW->skip_prd_cnt++;
+    }
+
+    if (encoder_temp == 0) {
+      if (localDW->skip_prd_cnt > 2147483646) {
+        encoder_temp = MAX_int32_T;
+      } else {
+        encoder_temp = localDW->skip_prd_cnt + 1;
       }
 
-      localDW->avar_velo[3] = localDW->avar_velo[2];
-      localDW->avar_velo[2] = localDW->avar_velo[1];
-      localDW->avar_velo[1] = localDW->avar_velo[0];
-      localDW->avar_velo[0] = (real32_T)encoder_temp *
-        control_flow_pulse_per_velo / ((real32_T)localDW->skip_prd_cnt *
-        control_flow_irq_prd);
-      localB->encoder_velo = (real32_T)((((localDW->avar_velo[3] +
-        localDW->avar_velo[2]) + localDW->avar_velo[1]) + localDW->avar_velo[0])
-        * 0.25);
-      localDW->skip_prd_cnt = 0U;
+      localB->encoder_velo = div_s32_sat(mul_s32_sat(localB->encoder_velo,
+        localDW->skip_prd_cnt), encoder_temp);
+    } else {
+      tmp = (real32_T)encoder_temp * control_flow_pulse_per_velo / ((real32_T)
+        localDW->skip_prd_cnt * control_flow_irq_prd);
+      if (tmp < 2.14748365E+9F) {
+        if (tmp >= -2.14748365E+9F) {
+          localB->encoder_velo = (int32_T)tmp;
+        } else {
+          localB->encoder_velo = MIN_int32_T;
+        }
+      } else {
+        localB->encoder_velo = MAX_int32_T;
+      }
+
+      localDW->skip_prd_cnt = 0;
     }
 
     localDW->is_c1_control_flow = control_flow_IN_velocity_com;
@@ -233,8 +330,6 @@ void control_flow_step(RT_MODEL_control_flow_T *const control_flow_M)
   ExtY_control_flow_T *control_flow_Y = (ExtY_control_flow_T *)
     control_flow_M->outputs;
   real32_T err_velo;
-  real32_T goal_local;
-  uint16_T tmp;
   boolean_T guard1 = false;
 
   /* Chart: '<S1>/velo_adjust' incorporates:
@@ -243,57 +338,62 @@ void control_flow_step(RT_MODEL_control_flow_T *const control_flow_M)
   control_flow_velo_adjust(control_flow_U->Input2.encoder_u16,
     &control_flow_B->sf_velo_adjust, &control_flow_DW->sf_velo_adjust);
 
-  /* Chart: '<S3>/Chart' incorporates:
-   *  Inport: '<Root>/Input'
+  /* Chart: '<S3>/motor pid' incorporates:
    *  Inport: '<Root>/Input1'
-   *  Inport: '<Root>/Input2'
    */
   if (control_flow_DW->is_active_c2_control_flow == 0U) {
     control_flow_DW->is_active_c2_control_flow = 1U;
     control_flow_DW->is_c2_control_flow = control_flow_IN_velo_dec;
-    control_flow_DW->pid_i = 0.0;
-    control_flow_DW->pid_d[0] = 0.0F;
-    control_flow_DW->pid_d[1] = 0.0F;
-    control_flow_DW->pid_d[2] = 0.0F;
-    control_flow_B->PID = 0.0F;
+    control_flow_DW->pid_val = 0.0F;
     control_flow_B->direction = 0U;
+    control_flow_B->motor_val = 0U;
+    control_flow_B->brake = 0U;
   } else if (control_flow_DW->is_c2_control_flow == control_flow_IN_velo_com) {
-    if (control_flow_U->Input1.input_velo_r32 > 300.0F) {
-      goal_local = 300.0F;
-    } else if (control_flow_U->Input1.input_velo_r32 < -300.0F) {
-      goal_local = -300.0F;
+    err_velo = control_flow_U->Input1.input_velo_r32 - (real32_T)
+      control_flow_B->sf_velo_adjust.encoder_velo;
+    control_flow_DW->pid_val += control_flow_kp * err_velo;
+    if (control_flow_U->Input1.input_velo_r32 == 0.0F) {
+      control_flow_B->brake = 1U;
+    } else if (control_flow_DW->pid_val > 0.0F) {
+      if (err_velo < -25.0F) {
+        control_flow_B->brake = 1U;
+      } else {
+        control_flow_B->brake = 0U;
+      }
+    } else if (err_velo > 25.0F) {
+      control_flow_B->brake = 1U;
     } else {
-      goal_local = control_flow_U->Input1.input_velo_r32;
+      control_flow_B->brake = 0U;
     }
 
-    if (control_flow_U->flag.move != 1) {
-      goal_local = 0.0F;
-    }
-
-    err_velo = goal_local - control_flow_B->sf_velo_adjust.encoder_velo;
-    control_flow_DW->pid_i += err_velo;
-    control_flow_DW->pid_d[2] = control_flow_DW->pid_d[1];
-    control_flow_DW->pid_d[1] = err_velo;
-    control_flow_DW->pid_d[0] = control_flow_DW->pid_d[2] -
-      control_flow_DW->pid_d[1];
-    control_flow_B->PID = (real32_T)(((control_flow_kp * err_velo + goal_local)
-      + control_flow_DW->pid_i) + control_flow_kd * control_flow_DW->pid_d[0]);
-    if (control_flow_B->PID > 0.0F) {
-      control_flow_B->direction = 1U;
-    } else if (control_flow_B->PID < 0.0F) {
-      control_flow_B->direction = 0U;
-    } else {
-      tmp = control_flow_U->Input2.motor_dir_u16;
-      if (control_flow_U->Input2.motor_dir_u16 > 255) {
-        tmp = 255U;
+    if (control_flow_DW->pid_val < 0.0F) {
+      if (-control_flow_DW->pid_val < 4.2949673E+9F) {
+        if (-control_flow_DW->pid_val >= 0.0F) {
+          control_flow_B->motor_val = (uint32_T)-control_flow_DW->pid_val;
+        } else {
+          control_flow_B->motor_val = 0U;
+        }
+      } else {
+        control_flow_B->motor_val = MAX_uint32_T;
       }
 
-      control_flow_B->direction = (uint8_T)tmp;
+      control_flow_B->direction = 0U;
+    } else {
+      if (control_flow_DW->pid_val < 4.2949673E+9F) {
+        if (control_flow_DW->pid_val >= 0.0F) {
+          control_flow_B->motor_val = (uint32_T)control_flow_DW->pid_val;
+        } else {
+          control_flow_B->motor_val = 0U;
+        }
+      } else {
+        control_flow_B->motor_val = MAX_uint32_T;
+      }
+
+      control_flow_B->direction = 1U;
     }
 
-    control_flow_B->PID = fabsf(control_flow_B->PID);
-    if (control_flow_B->PID > 1679.0F) {
-      control_flow_B->PID = 1679.0F;
+    if (control_flow_B->motor_val > control_flow_MOTOR_PRD_LIMIT) {
+      control_flow_B->motor_val = 16799U;
     }
 
     control_flow_DW->is_c2_control_flow = control_flow_IN_velo_com;
@@ -302,12 +402,7 @@ void control_flow_step(RT_MODEL_control_flow_T *const control_flow_M)
     control_flow_DW->is_c2_control_flow = control_flow_IN_velo_com;
   }
 
-  /* End of Chart: '<S3>/Chart' */
-
-  /* DataTypeConversion: '<S3>/Data Type Conversion' */
-  goal_local = fmodf(floorf(control_flow_B->PID), 4.2949673E+9F);
-  control_flow_Y->Output1.motor_val_u32 = goal_local < 0.0F ? (uint32_T)
-    -(int32_T)(uint32_T)-goal_local : (uint32_T)goal_local;
+  /* End of Chart: '<S3>/motor pid' */
 
   /* Chart: '<S1>/servo_dir' incorporates:
    *  Inport: '<Root>/Input1'
@@ -321,21 +416,35 @@ void control_flow_step(RT_MODEL_control_flow_T *const control_flow_M)
   if (control_flow_DW->is_active_c4_control_flow == 0U) {
     control_flow_DW->is_active_c4_control_flow = 1U;
     control_flow_DW->is_c4_control_flow = control_flow_IN_blink_init;
+    control_flow_DW->blink_cnt = control_flow_PRD;
+    control_flow_DW->blink_onoff = 0.0;
     control_flow_B->blink_left = 0U;
     control_flow_B->blink_right = 0U;
   } else if (control_flow_DW->is_c4_control_flow == control_flow_IN_blink_com) {
     guard1 = false;
     if (control_flow_U->flag.turn == 1) {
-      if (control_flow_U->flag.steer == 1) {
-        control_flow_B->blink_left = 1U;
-        control_flow_B->blink_right = 0U;
-      } else if (control_flow_U->flag.steer == 0) {
-        control_flow_B->blink_left = 0U;
-        control_flow_B->blink_right = 1U;
+      if (control_flow_DW->blink_cnt >= control_flow_PRD) {
+        control_flow_DW->blink_cnt = 0.0;
+        if (control_flow_DW->blink_onoff == 0.0) {
+          control_flow_DW->blink_onoff = 1.0;
+          if (control_flow_U->flag.steer == 1) {
+            control_flow_B->blink_left = 1U;
+            control_flow_B->blink_right = 0U;
+          } else {
+            /*  [dir_flag == 0]  */
+            control_flow_B->blink_left = 0U;
+            control_flow_B->blink_right = 1U;
+          }
+        } else {
+          control_flow_DW->blink_onoff = 0.0;
+          guard1 = true;
+        }
       } else {
-        guard1 = true;
+        control_flow_DW->blink_cnt++;
       }
     } else {
+      control_flow_DW->blink_cnt = control_flow_PRD;
+      control_flow_DW->blink_onoff = 0.0;
       guard1 = true;
     }
 
@@ -353,15 +462,15 @@ void control_flow_step(RT_MODEL_control_flow_T *const control_flow_M)
   /* End of Chart: '<S1>/Chart' */
 
   /* BusCreator: '<S1>/Bus Creator' incorporates:
-   *  Inport: '<Root>/Input'
    *  Outport: '<Root>/Output1'
    */
   control_flow_Y->Output1.motor_dir_u8 = control_flow_B->direction;
+  control_flow_Y->Output1.motor_val_u32 = control_flow_B->motor_val;
   control_flow_Y->Output1.servo_val_u32 =
     control_flow_B->sf_servo_dir.servo_temp;
   control_flow_Y->Output1.blinker_left_u8 = control_flow_B->blink_left;
   control_flow_Y->Output1.blinker_right_u8 = control_flow_B->blink_right;
-  control_flow_Y->Output1.start_stop_u8 = control_flow_U->flag.move;
+  control_flow_Y->Output1.brake_light_u8 = control_flow_B->brake;
 }
 
 /* Model initialize function */
@@ -396,15 +505,13 @@ void control_flow_initialize(RT_MODEL_control_flow_T *const control_flow_M)
   control_flow_velo_adjust_Init(&control_flow_B->sf_velo_adjust,
     &control_flow_DW->sf_velo_adjust);
 
-  /* SystemInitialize for Chart: '<S3>/Chart' */
+  /* SystemInitialize for Chart: '<S3>/motor pid' */
   control_flow_DW->is_active_c2_control_flow = 0U;
   control_flow_DW->is_c2_control_flow = control_fl_IN_NO_ACTIVE_CHILD_h;
-  control_flow_DW->pid_d[0] = 0.0F;
-  control_flow_DW->pid_d[1] = 0.0F;
-  control_flow_DW->pid_d[2] = 0.0F;
-  control_flow_DW->pid_i = 0.0;
+  control_flow_DW->pid_val = 0.0F;
   control_flow_B->direction = 0U;
-  control_flow_B->PID = 0.0F;
+  control_flow_B->motor_val = 0U;
+  control_flow_B->brake = 0U;
 
   /* SystemInitialize for Chart: '<S1>/servo_dir' */
   control_flow_servo_dir_Init(&control_flow_B->sf_servo_dir,
@@ -413,6 +520,8 @@ void control_flow_initialize(RT_MODEL_control_flow_T *const control_flow_M)
   /* SystemInitialize for Chart: '<S1>/Chart' */
   control_flow_DW->is_active_c4_control_flow = 0U;
   control_flow_DW->is_c4_control_flow = control_fl_IN_NO_ACTIVE_CHILD_h;
+  control_flow_DW->blink_cnt = 0.0;
+  control_flow_DW->blink_onoff = 0.0;
   control_flow_B->blink_right = 0U;
   control_flow_B->blink_left = 0U;
 }
