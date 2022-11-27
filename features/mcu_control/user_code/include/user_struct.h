@@ -24,13 +24,13 @@ extern "C"
 
 #define BUF_SIZE 128
 #define LAT_BUF_SIZE 5
+#define ANGLE_CORRECTION 6
 
     typedef struct
     {
-        uint8_t move_onoff : 1;
-        uint8_t turn_onoff : 1;
-        uint8_t blinker : 1;
-        uint8_t rsvd : 5;
+        uint8_t blinker_onoff : 1;
+        uint8_t blinker_dir : 1;
+        uint8_t rsvd : 6;
     } st_flag;
 
     union un_flag {
@@ -41,8 +41,8 @@ extern "C"
     typedef struct
     {
         uint8_t start;
-        uint8_t mode;
         union un_flag flag;
+        uint8_t velocity;
         uint8_t angle;
         uint8_t stop;
     } st_protocol;

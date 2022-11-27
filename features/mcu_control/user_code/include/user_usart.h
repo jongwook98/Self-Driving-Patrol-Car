@@ -10,9 +10,6 @@ extern "C"
 #include "main.h"
 #include "user_main.h"
 
-    extern st_protocol st_ptcl;
-    extern st_buffer st_buf;
-
     void receive_uart_start_it(void);
     void TxPrintf(char *Form, ...);
     void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);

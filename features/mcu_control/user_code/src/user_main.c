@@ -23,7 +23,24 @@ void main_init(void)
     RX_LED_OFF;
 }
 
-void main_while(void) {}
+void main_while(void)
+{
+/* motor test */
+#if 0
+    TxPrintf("%+5ld %+5ld %5ld %5u\n", (int32_t)control_flow.inputs->Input1.input_velo_r32,
+             control_flow.blockIO->sf_velo_adjust.encoder_velo,
+             (int32_t)control_flow.dwork->pid_val,
+             TIM8->CNT);
+#endif
+/* led test */
+#if 0
+    TxPrintf("%+5ld %u %u %u\n",
+             (int32_t)control_flow.inputs->Input1.input_velo_r32,
+             control_flow.outputs->Output1.brake_light_u8,
+             control_flow.outputs->Output1.blinker_left_u8,
+             control_flow.outputs->Output1.blinker_right_u8);
+#endif
+}
 
 static inline void _hal_lib_init(void)
 {
@@ -46,6 +63,7 @@ static inline void _matlab_var_init(void)
 
     control_flow_initialize(&control_flow);
 
-    control_flow.inputs->Input1.input_angle_r32 = (real32_T)90;
-    control_flow.inputs->Input1.input_velo_r32 = (real32_T)(-150);
+    control_flow.inputs->Input1.input_angle_r32 =
+        (real32_T)(90 - ANGLE_CORRECTION);
+    control_flow.inputs->Input1.input_velo_r32 = 0;
 }

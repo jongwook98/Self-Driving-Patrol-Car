@@ -6,11 +6,9 @@ void timer7_ISR(TIM_HandleTypeDef *htim) {}
 
 void timer9_motor_ISR(void)
 {
-    FROM_LATTE *input_val1 = &(control_flow.inputs->Input1);
     MOTOR_CONTROL *input_val2 = &(control_flow.inputs->Input2);
     RETURN *output_val = &(control_flow.outputs->Output1);
 
-    input_val1->input_angle_r32 = (real32_T)(st_ptcl.angle - 6);
     input_val2->encoder_u16 = (uint16_T)TIM8->CNT;
     TIM8->CNT = 0;
     input_val2->motor_dir_u16 =
@@ -23,7 +21,7 @@ void timer9_motor_ISR(void)
     HAL_GPIO_WritePin(blinker_right_GPIO_Port, blinker_right_Pin,
                       output_val->blinker_right_u8);
     HAL_GPIO_WritePin(break_light_GPIO_Port, break_light_Pin,
-                      !output_val->start_stop_u8);
+                      output_val->brake_light_u8);
     HAL_GPIO_WritePin(motor_dir_GPIO_Port, motor_dir_Pin,
                       output_val->motor_dir_u8);
 

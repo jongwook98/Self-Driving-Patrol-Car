@@ -7,20 +7,27 @@
 #include <string.h>
 
 static inline void _sum_rx_buf(uint8_t *buffer, uint8_t *_buf);
-static inline void _spdc_uart_protocol(uint8_t *buffer, uint8_t *_buf);
+static inline void _spdc_uart_protocol(uint8_t *_buf);
 static inline void _test_matlab_model(const uint8_t command,
                                       ExtU_control_flow_T *input);
 static inline void _transmit_string(volatile UART_HandleTypeDef *USARTx,
                                     uint8_t *buffer, char *Str);
 
-st_protocol st_ptcl;
-st_buffer st_buf;
+static st_protocol st_ptcl;
+static st_buffer st_buf;
 
 uint8_t txERR[] = "Something's wrong\r\n";
 char CR[] = {'\r'};
 
 void receive_uart_start_it(void)
 {
+    memset((void *)&st_buf.usart1.rx, 0x00, sizeof(uint8_t) * BUF_SIZE);
+    memset((void *)&st_buf.usart1.tx, 0x00, sizeof(uint8_t) * BUF_SIZE);
+    memset((void *)&st_buf.lp_buf, 0x00, sizeof(uint8_t) * LAT_BUF_SIZE);
+    memset((void *)&st_buf.lp_buf, 0x00, sizeof(uint8_t) * LAT_BUF_SIZE);
+    memset((void *)&st_buf.latte_panda.rx, 0x00, sizeof(uint8_t) * BUF_SIZE);
+    memset((void *)&st_buf.latte_panda.tx, 0x00, sizeof(uint8_t) * BUF_SIZE);
+
     HAL_UART_Receive_IT(&huart1, &st_buf.u1_buf, 1);
     HAL_UART_Receive_IT(&huart2, st_buf.lp_buf, LAT_BUF_SIZE);
 }
@@ -45,15 +52,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
     if (huart->Instance == USART1)
     {
-        _sum_rx_buf(st_buf.usart1.rx, &st_buf.u1_buf);
+        static uint8_t buf[BUF_SIZE];
+
+        _sum_rx_buf(buf, &st_buf.u1_buf);
         _test_matlab_model((const uint8_t)st_buf.u1_buf, control_flow.inputs);
         HAL_UART_Receive_IT(&huart1, &st_buf.u1_buf, 1);
     }
 
     if (huart->Instance == USART2)
     {
-        _spdc_uart_protocol(st_buf.latte_panda.rx, st_buf.lp_buf);
-        HAL_UART_Receive_IT(&huart2, st_buf.latte_panda.rx, LAT_BUF_SIZE);
+        _spdc_uart_protocol(st_buf.lp_buf);
+        HAL_UART_Receive_IT(&huart2, st_buf.lp_buf, LAT_BUF_SIZE);
     }
 
     RX_LED_OFF;
@@ -67,16 +76,20 @@ static inline void _sum_rx_buf(uint8_t *buffer, uint8_t *_buf)
         strcat((char *)buffer, (char *)_buf);
 }
 
-static inline void _spdc_uart_protocol(uint8_t *buffer, uint8_t *_buf)
+static inline void _spdc_uart_protocol(uint8_t *_buf)
 {
+    FROM_LATTE *input1 = &(control_flow.inputs->Input1);
+    FROM_LATTE_FLAG *input2 = &(control_flow.inputs->flag);
+
     if (*_buf == 0x55 && *(_buf + 4) == 0x77)
     {
         st_ptcl = *(st_protocol *)_buf;
 
-        control_flow.inputs->Input1.input_angle_r32 = (real_T)st_ptcl.angle;
-        control_flow.inputs->flag.steer = st_ptcl.flag.bit.blinker;
-        control_flow.inputs->flag.turn = st_ptcl.flag.bit.turn_onoff;
-        control_flow.inputs->flag.move = st_ptcl.flag.bit.move_onoff;
+        input1->input_angle_r32 =
+            (real32_T)(st_ptcl.angle - ANGLE_CORRECTION - 1);
+        input1->input_velo_r32 = (real32_T)((st_ptcl.velocity - 1) * 10);
+        input2->steer = st_ptcl.flag.bit.blinker_dir;
+        input2->turn = st_ptcl.flag.bit.blinker_onoff;
     }
 
     memset((void *)_buf, 0x00, sizeof(uint8_t) * LAT_BUF_SIZE);
@@ -90,26 +103,23 @@ static inline void _test_matlab_model(const uint8_t command,
 
     switch (command)
     {
-    case 'q':
-        input_val->input_velo_r32 += 50;
-        break;
-    case 'a':
-        input_val->input_velo_r32 -= 50;
-        break;
     case 'w':
-        input_val->input_angle_r32 += (float)10.0;
+        input_val->input_velo_r32 = 180;
         break;
     case 's':
-        input_val->input_angle_r32 -= (float)10.0;
+        input_val->input_velo_r32 = 0;
+        break;
+    case 'a':
+        input_val->input_angle_r32 += (float)2.5;
+        break;
+    case 'd':
+        input_val->input_angle_r32 -= (float)2.5;
         break;
     case 'e':
         if (input_flag->turn == 0)
             input_flag->turn = 1;
         else
             input_flag->steer = !input_flag->steer;
-        break;
-    case 'r':
-        input_flag->move = !input_flag->move;
         break;
     }
 }
